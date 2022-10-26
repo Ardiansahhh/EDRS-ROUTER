@@ -7,6 +7,7 @@ use App\Http\Controllers\HO\HOController;
 use App\Http\Controllers\IT\ITController;
 use App\Http\Controllers\LOGIN\LoginController;
 use App\Http\Controllers\VEHICLE\VehicleController;
+use App\Http\Controllers\WH\RayonController;
 use App\Http\Controllers\WH\WHController;
 use Illuminate\Support\Facades\Route;
 
@@ -84,6 +85,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/vehicle', [VehicleController::class, 'index']);
         Route::get('/input-vehicle', [VehicleController::class, 'input'])->name('input-vehicle');
         Route::post('/store_vehicle', [VehicleController::class, 'store']);
+
+        //Route for Rayon
+        Route::get('/rayon', [RayonController::class, 'index']);
+        Route::get('/input-rayon', [RayonController::class, 'input'])->name('input-rayon');
+        Route::post('/store-rayon', [RayonController::class, 'store']);
     });
 
     Route::group(['middleware' => ['CekLogin:3']], function () {
