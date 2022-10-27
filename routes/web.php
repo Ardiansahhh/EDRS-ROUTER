@@ -90,6 +90,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/rayon', [RayonController::class, 'index']);
         Route::get('/input-rayon', [RayonController::class, 'input'])->name('input-rayon');
         Route::post('/store-rayon', [RayonController::class, 'store']);
+        Route::get('/setting-rayon/{kode_rayon}', [RayonController::class, 'setting']);
+        Route::post('/load-rayon', [RayonController::class, 'load_rayon']);
     });
 
     Route::group(['middleware' => ['CekLogin:3']], function () {
