@@ -11,12 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 class RayonController extends Controller
 {
-    private $rayon;
-    function __construct()
-    {
-        $rayon = new RayonModel();
-    }
-
     public function index()
     {
         $user = Auth::user();
@@ -54,18 +48,20 @@ class RayonController extends Controller
     public function setting($kode_rayon)
     {
         $user = Auth::user();
-        $cek_toko = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, FV_CUSTNAME, FV_CUSTADD1, FV_CUSTCITY
-                                                        FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK) WHERE A.FC_BRANCH = '$user->fc_branch'");
+        $cek_toko = $this->getAllTemporaryby($user->fc_branch, null, 'branch');
+        $count = count($this->getRayonDetail($kode_rayon, $user->fc_branch, 'allCodeRayon'));
         if ($cek_toko) {
             return view('rayon/setting', [
                 'data' => $cek_toko,
                 'rayon' => $kode_rayon,
-                'isContent' => true
+                'isContent' => true,
+                'total'     => $count
             ]);
         } else {
             return view('rayon/setting', [
                 'isContent' => false,
                 'rayon' => $kode_rayon,
+                'total' => $count
             ]);
         }
     }
@@ -120,110 +116,137 @@ class RayonController extends Controller
         $length = strlen($request->FC_CUSTCODE);
         if ($length == 1) {
             $code = '00000' . $request->FC_CUSTCODE;
-            $data = $this->getTemporaryCust($code, $user->fc_branch);
+            $data = $this->getAllTemporaryby($user->fc_branch, $code, 'CodeCust');
+            $detail = $this->getRayonDetail($code, $user->fc_branch, 'byCode');
             if (!$data) {
-                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Data Tidak Ditemukan');
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Tidak Ditemukan');
             }
-            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
-                'fc_branch'   => $data[0]->FC_BRANCH,
-                'kode_rayon'  => $request->kode_rayon,
-                'fc_custcode' => $data[0]->FC_CUSTCODE,
-                'fv_custname' => $data[0]->FV_CUSTNAME,
-                'fv_custadd1' => $data[0]->FV_CUSTADD1,
-                'fv_custcity' => $data[0]->FV_CUSTCITY
-            ]);
-            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Berhasil Ditambahkan');
+
+            if ($detail) {
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+            $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
 
         if ($length == 2) {
             $code = '0000' . $request->FC_CUSTCODE;
-            $data = $this->getTemporaryCust($code, $user->fc_branch);
+            $data = $this->getAllTemporaryby($user->fc_branch, $code, 'CodeCust');
+            $detail = $this->getRayonDetail($code, $user->fc_branch, 'byCode');
             if (!$data) {
-                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Data Tidak Ditemukan');
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Tidak Ditemukan');
             }
-            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
-                'fc_branch'   => $data[0]->FC_BRANCH,
-                'kode_rayon'  => $request->kode_rayon,
-                'fc_custcode' => $data[0]->FC_CUSTCODE,
-                'fv_custname' => $data[0]->FV_CUSTNAME,
-                'fv_custadd1' => $data[0]->FV_CUSTADD1,
-                'fv_custcity' => $data[0]->FV_CUSTCITY
-            ]);
-            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Berhasil Ditambahkan');
+
+            if ($detail) {
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+            $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
 
         if ($length == 3) {
             $code = '000' . $request->FC_CUSTCODE;
-            $data = $this->getTemporaryCust($code, $user->fc_branch);
+            $data = $this->getAllTemporaryby($user->fc_branch, $code, 'CodeCust');
+            $detail = $this->getRayonDetail($code, $user->fc_branch, 'byCode');
             if (!$data) {
-                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Data Tidak Ditemukan');
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Tidak Ditemukan');
             }
-            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
-                'fc_branch'   => $data[0]->FC_BRANCH,
-                'kode_rayon'  => $request->kode_rayon,
-                'fc_custcode' => $data[0]->FC_CUSTCODE,
-                'fv_custname' => $data[0]->FV_CUSTNAME,
-                'fv_custadd1' => $data[0]->FV_CUSTADD1,
-                'fv_custcity' => $data[0]->FV_CUSTCITY
-            ]);
-            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Berhasil Ditambahkan');
+
+            if ($detail) {
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+            $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
 
         if ($length == 4) {
             $code = '00' . $request->FC_CUSTCODE;
-            $data = $this->getTemporaryCust($code, $user->fc_branch);
+            $data = $this->getAllTemporaryby($user->fc_branch, $code, 'CodeCust');
+            $detail = $this->getRayonDetail($code, $user->fc_branch, 'byCode');
             if (!$data) {
-                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Data Tidak Ditemukan');
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Tidak Ditemukan');
             }
-            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
-                'fc_branch'   => $data[0]->FC_BRANCH,
-                'kode_rayon'  => $request->kode_rayon,
-                'fc_custcode' => $data[0]->FC_CUSTCODE,
-                'fv_custname' => $data[0]->FV_CUSTNAME,
-                'fv_custadd1' => $data[0]->FV_CUSTADD1,
-                'fv_custcity' => $data[0]->FV_CUSTCITY
-            ]);
-            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Berhasil Ditambahkan');
+
+            if ($detail) {
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+            $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
 
         if ($length == 5) {
             $code = '0' . $request->FC_CUSTCODE;
-            $data = $this->getTemporaryCust($code, $user->fc_branch);
+            $data = $this->getAllTemporaryby($user->fc_branch, $code, 'CodeCust');
+            $detail = $this->getRayonDetail($code, $user->fc_branch, 'byCode');
             if (!$data) {
-                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Data Tidak Ditemukan');
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Tidak Ditemukan');
             }
-            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
-                'fc_branch'   => $data[0]->FC_BRANCH,
-                'kode_rayon'  => $request->kode_rayon,
-                'fc_custcode' => $data[0]->FC_CUSTCODE,
-                'fv_custname' => $data[0]->FV_CUSTNAME,
-                'fv_custadd1' => $data[0]->FV_CUSTADD1,
-                'fv_custcity' => $data[0]->FV_CUSTCITY
-            ]);
-            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Berhasil Ditambahkan');
+
+            if ($detail) {
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+            $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
 
         if ($length == 6) {
             $code = $request->FC_CUSTCODE;
-            $data = $this->getTemporaryCust($code, $user->fc_branch);
+            $data = $this->getAllTemporaryby($user->fc_branch, $code, 'CodeCust');
+            $detail = $this->getRayonDetail($code, $user->fc_branch, 'byCode');
             if (!$data) {
-                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Data Tidak Ditemukan');
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Tidak Ditemukan');
             }
-            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
-                'fc_branch'   => $data[0]->FC_BRANCH,
-                'kode_rayon'  => $request->kode_rayon,
-                'fc_custcode' => $data[0]->FC_CUSTCODE,
-                'fv_custname' => $data[0]->FV_CUSTNAME,
-                'fv_custadd1' => $data[0]->FV_CUSTADD1,
-                'fv_custcity' => $data[0]->FV_CUSTCITY
-            ]);
-            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Berhasil Ditambahkan');
+
+            if ($detail) {
+                return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+            $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
     }
 
-    public function getTemporaryCust($data, $branch)
+    public function getRayonDetail($code, $branch, $by)
     {
-        $toko = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_temporary_customer] WITH (NOLOCK) WHERE FC_BRANCH = '$branch' AND FC_CUSTCODE = '$data'");
-        return $toko;
+        if ($by == 'byCode') {
+            $toko = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_branch = '$branch' AND fc_custcode = '$code'");
+            return $toko;
+        }
+
+        if ($by == 'allCodeRayon') {
+            $toko = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_branch = '$branch' AND kode_rayon = '$code'");
+            return $toko;
+        }
+    }
+
+    public function getAllTemporaryby($branch, $code, $by)
+    {
+        if ($by == 'branch') {
+            $cek_toko = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTADD1, A.FV_CUSTCITY
+                                                             FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
+                                                             LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] B WITH (NOLOCK)
+                                                             ON A.FC_BRANCH = B.fc_branch AND A.FC_CUSTCODE = B.fc_custcode 
+                                                             WHERE A.FC_BRANCH = '$branch'
+                                                             AND B.fc_custcode IS NULL");
+            return $cek_toko;
+        }
+
+        if ($by == 'CodeCust') {
+            $toko = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTADD1, A.FV_CUSTCITY 
+                                                     FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK) 
+                                                     WHERE FC_BRANCH = '$branch' AND FC_CUSTCODE = '$code'");
+            return $toko;
+        }
+    }
+
+    public function inputRayonDetail($branch, $rayon, $custcode, $custname, $address, $city)
+    {
+        DB::connection('CSAREPORT')->table('t_rayon_detail')->insert([
+            'fc_branch'   => $branch,
+            'kode_rayon'  => $rayon,
+            'fc_custcode' => $custcode,
+            'fv_custname' => $custname,
+            'fv_custadd1' => $address,
+            'fv_custcity' => $city
+        ]);
     }
 }

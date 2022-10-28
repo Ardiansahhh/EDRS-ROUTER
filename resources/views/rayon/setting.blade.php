@@ -25,6 +25,17 @@
                                                         <button type="submit" name="load_rayon" class="btn btn-success"><i
                                                                 class="fas fa-download"></i> Load Data</button>
                                                     </form><br>
+                                                    @if (session()->has('session'))
+                                                        <div class="alert alert-danger alert-dismissible text-center fade show"
+                                                            role="alert">
+                                                            {{ session('session') }}
+                                                        </div>
+                                                    @endif
+                                                    @if (session()->has('success'))
+                                                        <div class="alert alert-success alert-dismissible text-center fade show"
+                                                            role="alert">
+                                                            {{ session('success') }}</div>
+                                                    @endif
                                                     <form action="/pilih-toko-rayon" method="post">
                                                         @csrf
                                                         <div class="row">
@@ -34,8 +45,9 @@
                                                                     <label>Input Code Customer</label>
                                                                     <input type="hidden" name="kode_rayon"
                                                                         value="{{ $rayon }}">
-                                                                    <input type="number" required class="form-control"
-                                                                        name="FC_CUSTCODE" placeholder="Kode Pelanggan">
+                                                                    <input type="number" autofocus required
+                                                                        class="form-control" name="FC_CUSTCODE"
+                                                                        placeholder="Kode Pelanggan">
                                                                 </div>
                                                             </div>
                                                             <div class="col-sm-2">
@@ -66,7 +78,7 @@
                                                         <!-- small box -->
                                                         <div class="small-box bg-info">
                                                             <div class="inner">
-                                                                <h3>18</h3>
+                                                                <h3>{{ $total }}</h3>
                                                                 <p>Detail Toko Routing</p>
                                                             </div>
                                                             <div class="icon">
@@ -86,15 +98,6 @@
                                 </div><!-- /.container-fluid -->
                             </section>
                         </div>
-                        @if (session()->has('session'))
-                            <div class="alert alert-danger alert-dismissible text-center fade show" role="alert">
-                                {{ session('session') }}
-                            </div>
-                        @endif
-                        @if (session()->has('success'))
-                            <div class="alert alert-success alert-dismissible text-center fade show" role="alert">
-                                {{ session('success') }}</div>
-                        @endif
                         <!-- /.card-header -->
                         <div class="card-body">
                             <table id="example2" class="table table-bordered table-hover">
