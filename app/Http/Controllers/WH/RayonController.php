@@ -48,6 +48,11 @@ class RayonController extends Controller
     public function setting($kode_rayon)
     {
         $user = Auth::user();
+        $check = $this->getRayonDetail($kode_rayon, $user->fc_branch, 'CheckRayon');
+        if (!$check) {
+            return redirect('/rayon');
+        }
+
         $cek_toko = $this->getAllTemporaryby($user->fc_branch, null, 'branch');
         $count = count($this->getRayonDetail($kode_rayon, $user->fc_branch, 'allCodeRayon'));
         if ($cek_toko) {
@@ -205,6 +210,77 @@ class RayonController extends Controller
         }
     }
 
+    public function detailRayon($rayon)
+    {
+        $user = Auth::user();
+        $check = $this->getRayonDetail($rayon, $user->fc_branch, 'CheckRayon');
+        if (!$check) {
+            return redirect('/rayon');
+        }
+        $data = $this->getRayonDetail($rayon, $user->fc_branch, 'allCodeRayon');
+        if (!$data) {
+            return redirect('/rayon');
+        }
+        return view('rayon/detail_toko_rayon', [
+            'data' => $data,
+            'rayon' => $rayon,
+            'isContent' => true,
+            'total'     => count($data)
+        ]);
+    }
+
+    public function checkbox_rayon(Request $request)
+    {
+        if (empty($request->input('FC_CUSTCODE'))) {
+            return redirect('/setting-rayon/' . $request->kode_rayon);
+        }
+
+        $branch = $request->FC_BRANCH;
+        $rayon  = $request->kode_rayon;
+        $will_insert = [];
+        $guard  = 0;
+        foreach ($request->FC_CUSTCODE as $key => $code) {
+            $check_toko = $this->getRayonDetail($code, $branch, 'byCode');
+            if (!$check_toko) {
+                $toko = $this->getAllTemporaryby($branch, $code, 'CodeCust');
+                array_push($will_insert, [
+                    'fc_branch'   => $branch,
+                    'kode_rayon'  => $rayon,
+                    'fc_custcode' => $code,
+                    'fv_custname' => $toko[0]->FV_CUSTNAME,
+                    'fv_custadd1' => $toko[0]->FV_CUSTADD1,
+                    'fv_custcity' => $toko[0]->FV_CUSTCITY
+                ]);
+                if ($guard == 80) {
+                    DB::connection('CSAREPORT')->table('t_rayon_detail')->insert($will_insert);
+                    $will_insert = [];
+                    $guard = 0;
+                }
+                $guard += 1;
+            }
+        }
+        if ($guard > 0) {
+            DB::connection('CSAREPORT')->table('t_rayon_detail')->insert($will_insert);
+            $will_insert = [];
+            $guard = 0;
+        }
+        return redirect('/setting-rayon/' . $rayon)->with('success', 'Data Berhasil Ditambahkan');
+    }
+
+    public function hapus_toko_rayon(Request $request)
+    {
+        if (!isset($_POST['hapus_toko'])) {
+            return redirect('rayon');
+        }
+
+        DB::connection('CSAREPORT')->delete("DELETE FROM [CSAREPORT].[dbo].[t_rayon_detail] 
+                                             WHERE 
+                                             fc_branch   = '$request->fc_branch' AND 
+                                             kode_rayon  = '$request->kode_rayon' AND 
+                                             fc_custcode = '$request->fc_custcode'");
+        return redirect('/detail-toko-rayon/' . $request->kode_rayon)->with('success', 'Data Berhasil Dihapus');
+    }
+
     public function getRayonDetail($code, $branch, $by)
     {
         if ($by == 'byCode') {
@@ -215,6 +291,11 @@ class RayonController extends Controller
         if ($by == 'allCodeRayon') {
             $toko = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_branch = '$branch' AND kode_rayon = '$code'");
             return $toko;
+        }
+
+        if ($by == 'CheckRayon') {
+            $rayon = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_rayon] WITH (NOLOCK) WHERE fc_branch = '$branch' AND kode_rayon = '$code'");
+            return $rayon;
         }
     }
 

@@ -54,9 +54,7 @@
                                                                 <label>Simpan</label>
                                                                 <div class="form-group">
                                                                     <button type="submit" name="pilih_toko_rayon"
-                                                                        class="form-control btn btn-info"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#exampleModal3">Simpan</button>
+                                                                        class="form-control btn btn-info">Simpan</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -106,38 +104,42 @@
                                     <tr>
                                         <th>BRANCH</th>
                                         <th>Kode Customer</th>
+                                        <th>Rayon</th>
                                         <th>Nama</th>
                                         <th>Alamat</th>
                                         <th>Kota</th>
-                                        <th>Pilih</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @if ($isContent)
                                         @foreach ($data as $item)
                                             <tr>
-                                                <td>{{ $item->FC_BRANCH }}</td>
-                                                <td>{{ $item->FC_CUSTCODE }}</td>
-                                                <td>{{ $item->FV_CUSTNAME }}</td>
-                                                <td>{{ $item->FV_CUSTADD1 }}</td>
-                                                <td>{{ $item->FV_CUSTCITY }}</td>
-                                                <form action="/checkbox-rayon" method="post">
-                                                    @csrf
-                                                    <td><input type="checkbox" name="FC_CUSTCODE[]"
-                                                            value="{{ $item->FC_CUSTCODE }}">
-                                                        <input type="hidden" name="FC_BRANCH"
-                                                            value="{{ $item->FC_BRANCH }}">
+                                                <td>{{ $item->fc_branch }}</td>
+                                                <td>{{ $item->kode_rayon }}</td>
+                                                <td>{{ $item->fc_custcode }}</td>
+                                                <td>{{ $item->fv_custname }}</td>
+                                                <td>{{ $item->fv_custadd1 }}</td>
+                                                <td>{{ $item->fv_custcity }}</td>
+                                                <td>
+                                                    <form action="/hapus-toko-rayon" method="post">
+                                                        @csrf
                                                         <input type="hidden" name="kode_rayon"
-                                                            value="{{ $rayon }}">
-                                                    </td>
+                                                            value="{{ $item->kode_rayon }}">
+                                                        <input type="hidden" name="fc_custcode"
+                                                            value="{{ $item->fc_custcode }}">
+                                                        <input type="hidden" name="fc_branch"
+                                                            value="{{ $item->fc_branch }}">
+                                                        <button type="submit" class="btn btn-danger"
+                                                            name="hapus_toko">Hapus</button>
+                                                    </form>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     @else
                                     @endif
                                 </tbody>
                             </table>
-                            <button type="submit" style="border: none"></button>
-                            </form>
                         </div>
                         <!-- /.card-body -->
                     </div>

@@ -89,8 +89,11 @@ Route::group(['middleware' => ['auth']], function () {
         //Route for Rayon
         Route::get('/rayon', [RayonController::class, 'index']);
         Route::get('/input-rayon', [RayonController::class, 'input'])->name('input-rayon');
-        Route::post('/store-rayon', [RayonController::class, 'store']);
+        Route::get('/detail-toko-rayon/{rayon}', [RayonController::class, 'detailRayon']);
         Route::get('/setting-rayon/{kode_rayon}', [RayonController::class, 'setting']);
+        Route::post('/store-rayon', [RayonController::class, 'store']);
+        Route::post('/checkbox-rayon', [RayonController::class, 'checkbox_rayon']);
+        Route::post('/hapus-toko-rayon', [RayonController::class, 'hapus_toko_rayon']);
         Route::post('/load-rayon', [RayonController::class, 'load_rayon']);
         Route::post('/pilih-toko-rayon', [RayonController::class, 'pilih_toko_rayon']);
     });
