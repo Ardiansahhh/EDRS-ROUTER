@@ -35,8 +35,38 @@
                                             <td>
                                                 <a href="/setting-rayon/{{ $item->kode_rayon }}"
                                                     class="btn btn-primary">Setting Toko</a>
-                                                <a href="/detail-toko-rayon/{{ $item->kode_rayon }}"
-                                                    class="btn btn-primary">Detail Toko</a>
+                                                <a class="btn btn-danger" data-toggle="modal"
+                                                    data-target="#modal-lg{{ $item->kode_rayon }}">Hold</a>
+                                                <div class="modal fade" id="modal-lg{{ $item->kode_rayon }}">
+                                                    <div class="modal-dialog modal-lg">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h4 class="modal-title">Warning</h4>
+                                                                <button type="button" class="close" data-dismiss="modal"
+                                                                    aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p>Apakah anda ingin hold kode rayon
+                                                                    {{ $item->kode_rayon }}</p>
+                                                            </div>
+                                                            <div class="modal-footer justify-content-between">
+                                                                <button type="button" class="btn btn-default"
+                                                                    data-dismiss="modal">Close</button>
+                                                                <form action="/hold-rayon" method="post">
+                                                                    @csrf
+                                                                    <input type="hidden" name="kode_rayon"
+                                                                        value="{{ $item->kode_rayon }}">
+                                                                    <button type="submit"
+                                                                        class="btn btn-danger">HOLD</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                        <!-- /.modal-content -->
+                                                    </div>
+                                                    <!-- /.modal-dialog -->
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach

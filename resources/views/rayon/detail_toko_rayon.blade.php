@@ -102,6 +102,7 @@
                             <table id="example2" class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
+                                        <th>No.</th>
                                         <th>BRANCH</th>
                                         <th>Kode Customer</th>
                                         <th>Rayon</th>
@@ -113,8 +114,10 @@
                                 </thead>
                                 <tbody>
                                     @if ($isContent)
+                                        <?php $no = 1; ?>
                                         @foreach ($data as $item)
                                             <tr>
+                                                <td>{{ $no }}</td>
                                                 <td>{{ $item->fc_branch }}</td>
                                                 <td>{{ $item->kode_rayon }}</td>
                                                 <td>{{ $item->fc_custcode }}</td>
@@ -122,19 +125,45 @@
                                                 <td>{{ $item->fv_custadd1 }}</td>
                                                 <td>{{ $item->fv_custcity }}</td>
                                                 <td>
-                                                    <form action="/hapus-toko-rayon" method="post">
-                                                        @csrf
-                                                        <input type="hidden" name="kode_rayon"
-                                                            value="{{ $item->kode_rayon }}">
-                                                        <input type="hidden" name="fc_custcode"
-                                                            value="{{ $item->fc_custcode }}">
-                                                        <input type="hidden" name="fc_branch"
-                                                            value="{{ $item->fc_branch }}">
-                                                        <button type="submit" class="btn btn-danger"
-                                                            name="hapus_toko">Hapus</button>
-                                                    </form>
+                                                    <a class="btn btn-danger" data-toggle="modal"
+                                                        data-target="#modal-lg{{ $item->kode_rayon }}">Hapus</a>
+                                                    <div class="modal fade" id="modal-lg{{ $item->kode_rayon }}">
+                                                        <div class="modal-dialog modal-lg">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h4 class="modal-title">Warning</h4>
+                                                                    <button type="button" class="close"
+                                                                        data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p>Apakah anda ingin toko
+                                                                        {{ $item->fv_custname }}</p>
+                                                                </div>
+                                                                <div class="modal-footer justify-content-between">
+                                                                    <button type="button" class="btn btn-default"
+                                                                        data-dismiss="modal">Close</button>
+                                                                    <form action="/hapus-toko-rayon" method="post">
+                                                                        @csrf
+                                                                        <input type="hidden" name="kode_rayon"
+                                                                            value="{{ $item->kode_rayon }}">
+                                                                        <input type="hidden" name="fc_custcode"
+                                                                            value="{{ $item->fc_custcode }}">
+                                                                        <input type="hidden" name="fc_branch"
+                                                                            value="{{ $item->fc_branch }}">
+                                                                        <button type="submit" class="btn btn-danger"
+                                                                            name="hapus_toko">Hapus</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <!-- /.modal-content -->
+                                                        </div>
+                                                        <!-- /.modal-dialog -->
+                                                    </div>
                                                 </td>
                                             </tr>
+                                            <?php $no++; ?>
                                         @endforeach
                                     @else
                                     @endif

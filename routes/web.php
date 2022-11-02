@@ -7,6 +7,7 @@ use App\Http\Controllers\HO\HOController;
 use App\Http\Controllers\IT\ITController;
 use App\Http\Controllers\LOGIN\LoginController;
 use App\Http\Controllers\VEHICLE\VehicleController;
+use App\Http\Controllers\WH\AreaController;
 use App\Http\Controllers\WH\RayonController;
 use App\Http\Controllers\WH\WHController;
 use Illuminate\Support\Facades\Route;
@@ -96,6 +97,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/hapus-toko-rayon', [RayonController::class, 'hapus_toko_rayon']);
         Route::post('/load-rayon', [RayonController::class, 'load_rayon']);
         Route::post('/pilih-toko-rayon', [RayonController::class, 'pilih_toko_rayon']);
+        Route::post('/hold-rayon', [RayonController::class, 'hold_rayon']);
+
+        //Route for Area
+        Route::get('/area', [AreaController::class, 'index']);
+        Route::get('/input-area', [AreaController::class, 'input'])->name('input-area');
+        Route::post('/store-area', [AreaController::class, 'store']);
     });
 
     Route::group(['middleware' => ['CekLogin:3']], function () {

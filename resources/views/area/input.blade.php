@@ -21,46 +21,41 @@
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <form action="/store-rayon" method="POST">
+                            <form action="/store-area" method="POST">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-sm-2">
+                                    <div class="col-sm-8">
                                         <!-- select -->
                                         <div class="form-group">
                                             <label>CABANG</label>
-                                            <input type="text" name="fc_branch" class="form-control" disabled
+                                            <input type="text" name="fc_branch" class="form-control" readonly
                                                 value="{{ Auth::user()->fc_branch }}">
                                         </div>
                                     </div>
                                 </div>
-                                <table id="example2" class="table table-bordered table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>BRANCH</th>
-                                            <th>Kode Area</th>
-                                            <th>Nama Area</th>
-                                            <th>Pilih</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($data as $item)
-                                            <tr>
-                                                <td>{{ $item->fc_branch }}</td>
-                                                <td>{{ $item->kode_area }}</td>
-                                                <td>{{ $item->nama_area }}</td>
-                                                <td>
-                                                    <form action="/store-rayon" method="post">
-                                                        <input type="checkbox" name="kode_area[]"
-                                                            value="{{ $item->kode_area }}">
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                                <div class="card-footer">
-                                    <button type="submit" name="create_rayon" style="border: none"></button>
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <!-- select -->
+                                        <div class="form-group">
+                                            <label>Kode Area</label>
+                                            <input type="text" maxlength="2" name="kode_area" class="form-control"
+                                                required>
+                                        </div>
+                                    </div>
                                 </div>
-                            </form>
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <!-- select -->
+                                        <div class="form-group">
+                                            <label>Nama Area</label>
+                                            <input type="text" name="nama_area" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button type="submit" name="create_area" class="btn btn-info"><i
+                                            class="fa-solid fa-send"></i>Save</button>
+                                </div>
                             </form>
                         </div>
                         <!-- /.card-body -->

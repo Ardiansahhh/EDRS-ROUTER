@@ -170,6 +170,7 @@
                                                                      <label>Berdasarkan</label>
                                                                      <select name="filter_by" class="custom-select">
                                                                          <option value="FC_REGIONDESC">Kelurahan</option>
+                                                                         <option value="RAYON">Rayon</option>
                                                                          <option value="GT">GT</option>
                                                                          <option value="MT">MT</option>
                                                                      </select>
@@ -231,6 +232,7 @@
                                      <th>CUST CODE</th>
                                      <th>TOKO</th>
                                      <th>KELURAHAN</th>
+                                     <th>RAYON</th>
                                      <th>SHIPNAME</th>
                                      <th>SHIPADDRESS</th>
                                      <th>KUBIKASI</th>
@@ -254,6 +256,7 @@
                                              @else
                                                  <td>Belum Ada(NULL) </td>
                                              @endif
+                                             <td>{{ $d->KODE_RAYON }}</td>
                                              <td>{{ $d->SHIPNAME }}</td>
                                              <td>{{ $d->SHIPADDRESS }}</td>
                                              <td>{{ $d->KUBIK / 1000000 }}</td>

@@ -152,6 +152,14 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
+                                    <a href="/area" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Data Area</p>
+                                    </a>
+                                </li>
+                            </ul>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
                                     <a href="/rayon" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Data Rayon</p>

@@ -14,35 +14,70 @@ class RayonController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $toko = DB::connection('CSAREPORT')->select("SELECT A.fc_branch, A.kode_rayon, A.name, A.tanggal FROM [CSAREPORT].[dbo].[t_rayon] A WITH (NOLOCK) WHERE fc_branch = '$user->fc_branch'");
+        $toko = DB::connection('CSAREPORT')->select("SELECT A.fc_branch, A.kode_rayon, A.name, A.tanggal FROM [CSAREPORT].[dbo].[t_rayon] A WITH (NOLOCK)
+                                                     WHERE fc_branch = '$user->fc_branch' AND is_hold = 'NO'");
         return view('rayon/index', ['data' => $toko]);
     }
 
     public function input()
     {
-        return view('rayon/input');
+        $user = Auth::user();
+        $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch' AND setting = 'NO'");
+        return view('rayon/input', ['data' => $data]);
     }
+
+    // public function store(Request $request)
+    // {
+    //     date_default_timezone_set('Asia/Jakarta');
+    //     if (isset($_POST['create_rayon'])) {
+    //         $user = Auth::user();
+    //         $today = date('d-m-Y H:i:s');
+    //         $kode_rayon = strtoupper($request->kode_rayon);
+    //         $cek_kode = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon] WHERE fc_branch = '$user->fc_branch' AND kode_rayon = '$kode_rayon'");
+    //         if (!$cek_kode) {
+    //             $data = [
+    //                 'fc_branch'  => $user->fc_branch,
+    //                 'kode_rayon' => $kode_rayon,
+    //                 'name'       => $user->name,
+    //                 'tanggal'    => $today
+    //             ];
+    //             DB::connection('CSAREPORT')->table('t_rayon')->insert($data);
+    //             return redirect('/rayon')->with('success', 'Sukses ditambahkan');
+    //         }
+    //         return redirect()->back()->with('session', 'Kode Sudah digunakan');
+    //     }
+    // }
 
     public function store(Request $request)
     {
         date_default_timezone_set('Asia/Jakarta');
         if (isset($_POST['create_rayon'])) {
-            $user = Auth::user();
+            $user  = Auth::user();
             $today = date('d-m-Y H:i:s');
-            $kode_rayon = strtoupper($request->kode_rayon);
-            $cek_kode = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon] WHERE fc_branch = '$user->fc_branch' AND kode_rayon = '$kode_rayon'");
-            if (!$cek_kode) {
-                $data = [
-                    'fc_branch'  => $user->fc_branch,
-                    'kode_rayon' => $kode_rayon,
-                    'name'       => $user->name,
-                    'tanggal'    => $today
-                ];
-                DB::connection('CSAREPORT')->table('t_rayon')->insert($data);
-                return redirect('/rayon')->with('success', 'Sukses ditambahkan');
+            $set = '';
+            foreach ($request->kode_area as $key => $value) {
+                DB::connection('CSAREPORT')->update("UPDATE [CSAREPORT].[dbo].[t_area] 
+                                                     SET setting = 'YES' 
+                                                     WHERE 
+                                                     fc_branch = '$user->fc_branch' AND 
+                                                     kode_area = '$value'");
+                if ($set == '') {
+                    $set = $value;
+                } else {
+                    $set = $set . '-' . $value;
+                }
             }
-            return redirect()->back()->with('session', 'Kode Sudah digunakan');
+            $data = [
+                'fc_branch'  => $user->fc_branch,
+                'kode_rayon' => $set,
+                'name'       => $user->name,
+                'tanggal'    => $today,
+                'is_hold'    => 'NO'
+            ];
+            DB::connection('CSAREPORT')->table('t_rayon')->insert($data);
+            return redirect('/rayon')->with('success', 'Sukses ditambahkan');
         }
+        return redirect()->back()->with('session', 'Kode Sudah digunakan');
     }
 
     public function setting($kode_rayon)
@@ -130,6 +165,16 @@ class RayonController extends Controller
             if ($detail) {
                 return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
             }
+
+            $checkData = DB::connection('sqlsrv')->select("SELECT FC_CUSTCODE, KODE_RAYON FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                           WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+            if ($checkData) {
+                if ($checkData[0]->KODE_RAYON == 'Belum Ada') {
+                    DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                                      SET KODE_RAYON = '$request->kode_rayon'
+                                                      WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+                }
+            }
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
@@ -144,6 +189,16 @@ class RayonController extends Controller
 
             if ($detail) {
                 return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+
+            $checkData = DB::connection('sqlsrv')->select("SELECT FC_CUSTCODE, KODE_RAYON FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                           WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+            if ($checkData) {
+                if ($checkData[0]->KODE_RAYON == 'Belum Ada') {
+                    DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                                      SET KODE_RAYON = '$request->kode_rayon'
+                                                      WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+                }
             }
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
@@ -160,6 +215,16 @@ class RayonController extends Controller
             if ($detail) {
                 return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
             }
+
+            $checkData = DB::connection('sqlsrv')->select("SELECT FC_CUSTCODE, KODE_RAYON FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                           WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+            if ($checkData) {
+                if ($checkData[0]->KODE_RAYON == 'Belum Ada') {
+                    DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                                      SET KODE_RAYON = '$request->kode_rayon'
+                                                      WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+                }
+            }
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
@@ -174,6 +239,16 @@ class RayonController extends Controller
 
             if ($detail) {
                 return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+
+            $checkData = DB::connection('sqlsrv')->select("SELECT FC_CUSTCODE, KODE_RAYON FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                           WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+            if ($checkData) {
+                if ($checkData[0]->KODE_RAYON == 'Belum Ada') {
+                    DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                                      SET KODE_RAYON = '$request->kode_rayon'
+                                                      WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+                }
             }
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
@@ -190,6 +265,16 @@ class RayonController extends Controller
             if ($detail) {
                 return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
             }
+
+            $checkData = DB::connection('sqlsrv')->select("SELECT FC_CUSTCODE, KODE_RAYON FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                           WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+            if ($checkData) {
+                if ($checkData[0]->KODE_RAYON == 'Belum Ada') {
+                    DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                                      SET KODE_RAYON = '$request->kode_rayon'
+                                                      WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+                }
+            }
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
@@ -204,6 +289,16 @@ class RayonController extends Controller
 
             if ($detail) {
                 return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer ' . $code . ' Sudah Ada di Rayon ' .  $detail[0]->kode_rayon);
+            }
+
+            $checkData = DB::connection('sqlsrv')->select("SELECT FC_CUSTCODE, KODE_RAYON FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                           WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+            if ($checkData) {
+                if ($checkData[0]->KODE_RAYON == 'Belum Ada') {
+                    DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                                      SET KODE_RAYON = '$request->kode_rayon'
+                                                      WHERE FC_BRANCH = '$user->fc_branch' AND FC_CUSTCODE = '$code'");
+                }
             }
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
@@ -272,13 +367,104 @@ class RayonController extends Controller
         if (!isset($_POST['hapus_toko'])) {
             return redirect('rayon');
         }
-
+        DB::connection('sqlsrv')->update("UPDATE [d_transaksi].[dbo].[temporarydetailorders] 
+                                          SET KODE_RAYON  = 'Belum Ada'
+                                          WHERE FC_BRANCH = '$request->fc_branch' AND
+                                          FC_CUSTCODE     = '$request->fc_custcode'");
         DB::connection('CSAREPORT')->delete("DELETE FROM [CSAREPORT].[dbo].[t_rayon_detail] 
                                              WHERE 
                                              fc_branch   = '$request->fc_branch' AND 
                                              kode_rayon  = '$request->kode_rayon' AND 
                                              fc_custcode = '$request->fc_custcode'");
         return redirect('/detail-toko-rayon/' . $request->kode_rayon)->with('success', 'Data Berhasil Dihapus');
+    }
+
+    public function hold_rayon(Request $request)
+    {
+        date_default_timezone_set('Asia/Jakarta');
+        $today = date('d-m-Y H:i:s');
+        $user = Auth::user();
+        $rayon = $request->kode_rayon;
+        $getData = $this->getRayonDetail($rayon, $user->fc_branch, 'CheckRayon');
+        $allData = $this->getRayonDetail($rayon, $user->fc_branch, 'allCodeRayon');
+        $data = explode('-', $getData[0]->kode_rayon);
+        foreach ($data as $d) {
+            DB::connection('CSAREPORT')->update("UPDATE [CSAREPORT].[dbo].[t_area] 
+                                                 SET setting = 'NO' 
+                                                 WHERE fc_branch = '$user->fc_branch' AND 
+                                                 kode_area = '$d'");
+        }
+        $will_insert = [];
+        $guard = 0;
+        foreach ($allData as $a) {
+            array_push($will_insert, [
+                'fc_branch'   => $a->fc_branch,
+                'kode_rayon'  => $a->kode_rayon,
+                'fc_custcode' => $a->fc_custcode,
+                'fv_custname' => $a->fv_custname,
+                'fv_custadd1' => $a->fv_custadd1,
+                'fv_custcity' => $a->fv_custcity,
+                'is_hold'     => 'YES'
+            ]);
+            if ($guard == 80) {
+                DB::connection('CSAREPORT')->table('t_hold')->insert($will_insert);
+                $will_insert = [];
+                $guard = 0;
+            }
+            $guard += 1;
+        }
+        if ($guard > 0) {
+            DB::connection('CSAREPORT')->table('t_hold')->insert($will_insert);
+            $will_insert = [];
+            $guard = 0;
+        }
+        $temporary = DB::connection('sqlsrv')->select("SELECT * FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK) WHERE FC_BRANCH = '$user->fc_branch' AND KODE_RAYON = '$rayon'");
+        $insert = [];
+        $guard_insert = 0;
+        foreach ($temporary as $t) {
+            array_push($insert, [
+                'FC_BRANCH'     => $t->FC_BRANCH,
+                'FV_BRANDNAME'  => $t->FV_BRANDNAME,
+                'FC_SONO'       => $t->FC_SONO,
+                'FD_SODATE'     => $t->FD_SODATE,
+                'FV_CUSTNAME'   => $t->FV_CUSTNAME,
+                'FC_CUSTCODE'   => $t->FC_CUSTCODE,
+                'FV_STOCKNAME'  => $t->FV_STOCKNAME,
+                'FC_STOCKCODE'  => $t->FC_STOCKCODE,
+                'FC_REGIONDESC' => $t->FC_REGIONDESC,
+                'SHIPNAME'      => $t->SHIPNAME,
+                'SHIPADDRESS'   => $t->SHIPADDRESS,
+                'FC_CUSTTYPE'   => $t->FC_CUSTTYPE,
+                'FC_CUSTJENIS'  => $t->FC_CUSTJENIS,
+                'Uom'           => $t->UoM,
+                'FN_QTY'        => $t->FN_QTY,
+                'FN_EXTRA'      => $t->FN_EXTRA,
+                'KUBIKASI'      => $t->KUBIKASI,
+                'KODE_RAYON'    => "Belum Ada"
+            ]);
+            if ($guard_insert == 80) {
+                DB::connection('sqlsrv')->table('temporarydetailorders')->insert($insert);
+                $insert = [];
+                $guard_insert = 0;
+            }
+            $guard_insert += 1;
+        }
+        if ($guard_insert > 0) {
+            DB::connection('sqlsrv')->table('temporarydetailorders')->insert($insert);
+            $insert = [];
+            $guard_insert = 0;
+        }
+        DB::connection('sqlsrv')->delete("DELETE FROM [d_transaksi].[dbo].[temporarydetailorders] WHERE FC_BRANCH = '$user->fc_branch' AND KODE_RAYON = '$rayon'");
+        DB::connection('CSAREPORT')->update("UPDATE [CSAREPORT].[dbo].[t_rayon]
+                                                 SET is_hold = 'YES', tanggal_hold = '$today'
+                                                 WHERE
+                                                 fc_branch = '$user->fc_branch' AND
+                                                 kode_rayon = '$rayon'");
+        DB::connection('CSAREPORT')->delete("DELETE FROM [CSAREPORT].[dbo].[t_rayon_detail]
+                                             WHERE
+                                             fc_branch = '$user->fc_branch' AND
+                                             kode_rayon = '$rayon'");
+        return redirect('/rayon')->with('success', 'Kode Rayon Sudah Di Hold');
     }
 
     public function getRayonDetail($code, $branch, $by)
@@ -306,8 +492,9 @@ class RayonController extends Controller
                                                              FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
                                                              LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] B WITH (NOLOCK)
                                                              ON A.FC_BRANCH = B.fc_branch AND A.FC_CUSTCODE = B.fc_custcode 
-                                                             WHERE A.FC_BRANCH = '$branch'
-                                                             AND B.fc_custcode IS NULL");
+                                                             WHERE A.FC_BRANCH = '$branch' 
+                                                             AND B.fc_custcode IS NULL
+                                                             ORDER BY A.FC_CUSTCODE");
             return $cek_toko;
         }
 
