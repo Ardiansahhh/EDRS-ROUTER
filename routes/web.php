@@ -98,6 +98,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/load-rayon', [RayonController::class, 'load_rayon']);
         Route::post('/pilih-toko-rayon', [RayonController::class, 'pilih_toko_rayon']);
         Route::post('/hold-rayon', [RayonController::class, 'hold_rayon']);
+        Route::post('/setting-shipto', [RayonController::class, 'setting_shipto']);
+        Route::post('/search-customer', [RayonController::class, 'search_customer']);
 
         //Route for Area
         Route::get('/area', [AreaController::class, 'index']);

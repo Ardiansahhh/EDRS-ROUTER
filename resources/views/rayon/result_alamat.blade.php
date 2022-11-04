@@ -146,7 +146,6 @@
                                         <th>Nama</th>
                                         <th>Alamat</th>
                                         <th>SHIP CODE</th>
-                                        <th>SHIP TO</th>
                                         <th>Kota</th>
                                         <th>Pilih</th>
                                     </tr>
@@ -158,9 +157,8 @@
                                                 <td>{{ $item->FC_BRANCH }}</td>
                                                 <td>{{ $item->FC_CUSTCODE }}</td>
                                                 <td>{{ $item->FV_CUSTNAME }}</td>
-                                                <td>{{ $item->FV_CUSTADD1 }}</td>
+                                                <td>{{ $item->ALAMAT }}</td>
                                                 <td>{{ $item->FC_SHIPCODE }}</td>
-                                                <td style="font-size: 10px">{{ $item->FV_SHIPADD1 }}</td>
                                                 <td>{{ $item->FV_CUSTCITY }}</td>
                                                 <form action="/checkbox-rayon" method="post">
                                                     @csrf

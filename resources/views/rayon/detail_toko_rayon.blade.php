@@ -13,7 +13,7 @@
                                             <!-- general form elements disabled -->
                                             <div class="card card-info">
                                                 <div class="card-header">
-                                                    <h3 class="card-title">LOAD DATA ORDERAN</h3>
+                                                    <h3 class="card-title">LOAD DATA TOKO</h3>
                                                 </div>
                                                 <!-- /.card-header -->
                                                 <div class="card-body">
@@ -36,25 +36,64 @@
                                                             role="alert">
                                                             {{ session('success') }}</div>
                                                     @endif
-                                                    <form action="/pilih-toko-rayon" method="post">
+                                                    <form action="/search-customer" method="post">
+                                                        @csrf
+                                                        <div class="row">
+                                                            <div class="col-sm-5">
+                                                                <!-- text input -->
+                                                                <div class="form-group">
+                                                                    <label>Search</label>
+                                                                    <select name="pilih" class="form-control">
+                                                                        <option value="FC_CUSTCODE">Kode Customer</option>
+                                                                        <option value="FV_CUSTNAME">Nama Customer</option>
+                                                                        <option value="FV_CUSTADD1">Alamat - IDCard</option>
+                                                                        <option value="FV_SHIPADD1">Alamat - Shipto</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-5">
+                                                                <!-- text input -->
+                                                                <div class="form-group">
+                                                                    <label>Input</label>
+                                                                    <input type="hidden" name="kode_rayon"
+                                                                        value="{{ $rayon }}">
+                                                                    <input type="text" autofocus required
+                                                                        class="form-control" name="search"
+                                                                        placeholder="Search...">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <label>Searching</label>
+                                                                <div class="form-group">
+                                                                    <button type="submit" name="search_toko"
+                                                                        class="form-control btn btn-info"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#exampleModal3">search</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                    <form action="/setting-shipto" method="post">
                                                         @csrf
                                                         <div class="row">
                                                             <div class="col-sm-10">
                                                                 <!-- text input -->
                                                                 <div class="form-group">
-                                                                    <label>Input Code Customer</label>
+                                                                    <label>Setting Ship</label>
                                                                     <input type="hidden" name="kode_rayon"
                                                                         value="{{ $rayon }}">
-                                                                    <input type="number" autofocus required
-                                                                        class="form-control" name="FC_CUSTCODE"
-                                                                        placeholder="Kode Pelanggan">
+                                                                    <input type="text" readonly autofocus required
+                                                                        class="form-control" name="FC_SHIPCODE"
+                                                                        placeholder="Setting ShipTO">
                                                                 </div>
                                                             </div>
                                                             <div class="col-sm-2">
-                                                                <label>Simpan</label>
+                                                                <label>Setting</label>
                                                                 <div class="form-group">
-                                                                    <button type="submit" name="pilih_toko_rayon"
-                                                                        class="form-control btn btn-info">Simpan</button>
+                                                                    <button type="submit" name="setting_rayon"
+                                                                        class="form-control btn btn-info"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#exampleModal3">Setting</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -103,9 +142,9 @@
                                 <thead>
                                     <tr>
                                         <th>No.</th>
+                                        <th>Rayon</th>
                                         <th>BRANCH</th>
                                         <th>Kode Customer</th>
-                                        <th>Rayon</th>
                                         <th>Nama</th>
                                         <th>Alamat</th>
                                         <th>Kota</th>
@@ -118,16 +157,16 @@
                                         @foreach ($data as $item)
                                             <tr>
                                                 <td>{{ $no }}</td>
-                                                <td>{{ $item->fc_branch }}</td>
                                                 <td>{{ $item->kode_rayon }}</td>
-                                                <td>{{ $item->fc_custcode }}</td>
+                                                <td>{{ $item->fc_branch }}</td>
+                                                <td>{{ $item->code_customer }}</td>
                                                 <td>{{ $item->fv_custname }}</td>
-                                                <td>{{ $item->fv_custadd1 }}</td>
+                                                <td>{{ $item->alamat }}</td>
                                                 <td>{{ $item->fv_custcity }}</td>
                                                 <td>
                                                     <a class="btn btn-danger" data-toggle="modal"
-                                                        data-target="#modal-lg{{ $item->kode_rayon }}">Hapus</a>
-                                                    <div class="modal fade" id="modal-lg{{ $item->kode_rayon }}">
+                                                        data-target="#modal-lg{{ $item->code_customer }}">Hapus</a>
+                                                    <div class="modal fade" id="modal-lg{{ $item->code_customer }}">
                                                         <div class="modal-dialog modal-lg">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
@@ -149,9 +188,11 @@
                                                                         <input type="hidden" name="kode_rayon"
                                                                             value="{{ $item->kode_rayon }}">
                                                                         <input type="hidden" name="fc_custcode"
-                                                                            value="{{ $item->fc_custcode }}">
+                                                                            value="{{ $item->code_customer_real }}">
                                                                         <input type="hidden" name="fc_branch"
                                                                             value="{{ $item->fc_branch }}">
+                                                                        <input type="hidden" name="fc_shipcode"
+                                                                            value="{{ $item->fc_shipcode }}">
                                                                         <button type="submit" class="btn btn-danger"
                                                                             name="hapus_toko">Hapus</button>
                                                                     </form>

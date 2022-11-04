@@ -38,7 +38,7 @@
                                         <!-- select -->
                                         <div class="form-group">
                                             <label>Kode Area</label>
-                                            <input type="text" maxlength="2" name="kode_area" class="form-control"
+                                            <input type="text" maxlength="10" name="kode_area" class="form-control"
                                                 required>
                                         </div>
                                     </div>
