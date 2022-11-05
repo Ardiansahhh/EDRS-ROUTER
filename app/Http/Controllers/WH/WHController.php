@@ -762,6 +762,11 @@ class WHController extends Controller
                                                 A.FC_SONO,
                                                 D.FD_SODATE,
                                                 D.FC_CUSTCODE,
+                                                CASE 
+                                                    WHEN D.FC_SHIPTO IS NULL THEN '0'
+                                                    WHEN D.FC_SHIPTO = '' THEN '0'
+                                                ELSE D.FC_SHIPTO
+                                                END AS SHIPTO,
                                                 A.FC_STOCKCODE,
                                                 A.FN_QTY,
                                                 A.FN_EXTRA,
@@ -821,7 +826,7 @@ class WHController extends Controller
                 $guard = 0;
                 foreach ($data as $main) {
                     $barang = DB::connection('sqlsrv')->select("SELECT KUBIKASI_PCS FROM [d_master].[dbo].[MASTER_KUBIKASI] WITH (NOLOCK) WHERE FC_STOCKCODE = '$main->FC_STOCKCODE'");
-                    $rayon = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_custcode = '$main->FC_CUSTCODE'");
+                    $rayon = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_branch = '$user->fc_branch' AND fc_custcode = '$main->FC_CUSTCODE' AND fc_shipcode = '$main->SHIPTO'");
                     if ($barang) {
                         $qty      = (int)$main->FN_QTY + (int)$main->FN_EXTRA;
                         $kubikasi = (int)$barang[0]->KUBIKASI_PCS * (int)$qty;
