@@ -70,7 +70,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/filter_by',  [WHController::class, 'filter_by']);
         Route::post('/filter_byy',  [WHController::class, 'filter_byy']);
         Route::post('/detail-kelurahan',  [WHController::class, 'detail_kelurahan']);
+        Route::post('/detail-rayon',  [WHController::class, 'detail_rayon']);
         Route::post('/pilih-kelurahan',  [WHController::class, 'pilih_kelurahan']);
+        Route::post('/pilih-rayon',  [WHController::class, 'pilih_rayon']);
         Route::get('/cetak-toko/{routing}', [WHController::class, 'cetak_toko']);
         Route::get('/cetak-barang/{routing}', [WHController::class, 'cetak_barang']);
 

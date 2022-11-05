@@ -448,6 +448,29 @@ class RayonController extends Controller
                     'total' => $count
                 ]);
             }
+        } elseif ($request->pilih == 'FV_SHIPADD1') {
+            $data = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTCITY, A.FC_SHIPCODE, A.FV_SHIPADD1 AS ALAMAT
+                                                         FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
+                                                         LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] B WITH (NOLOCK) ON
+                                                         A.FC_BRANCH = B.fc_branch AND A.FC_CUSTCODE = B.fc_custcode AND A.FC_SHIPCODE = B.fc_shipcode
+                                                         WHERE A.FC_BRANCH =  '$user->fc_branch' AND
+                                                               A.FV_SHIPADD1 LIKE '%$request->search%' AND
+                                                         B.fc_shipcode IS NULL");
+            $count = count($this->getRayonDetail($kode_rayon, $user->fc_branch, 'allCodeRayon'));
+            if ($data) {
+                return view('rayon/result_alamat', [
+                    'data' => $data,
+                    'rayon' => $kode_rayon,
+                    'isContent' => true,
+                    'total'     => $count
+                ]);
+            } else {
+                return view('rayon/result_alamat', [
+                    'isContent' => false,
+                    'rayon' => $kode_rayon,
+                    'total' => $count
+                ]);
+            }
         }
     }
 

@@ -1116,11 +1116,12 @@ class WHController extends Controller
                 $data = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.KODE_RAYON AS RAYON, SUM(A.KUBIKASI) AS KUBIK
                                                       FROM [d_transaksi].[dbo].[temporarydetailorders] A WITH (NOLOCK)
                                                       LEFT JOIN [d_transaksi].[dbo].[routingcustomer] B WITH (NOLOCK)
-                                                      ON A.FC_BRANCH = B.FC_BRANCH AND A.FC_SONO = B.FC_SONO
+                                                      ON A.FC_BRANCH = B.FC_BRANCH AND A.FC_SONO = B.FC_SONO 
                                                       WHERE A.FC_BRANCH = '$code_stof'
+                                                      AND A.KODE_RAYON IS NOT NULL
                                                       AND B.FC_SONO IS NULL
                                                       GROUP BY A.FC_BRANCH, A.KODE_RAYON");
-                return view('wh/routing/kelurahan', [
+                return view('wh/routing/filter_by_rayon', [
                     "data" => $data,
                     "kubikasi_load" => $info_toko[0],
                     "toko_load"     => $toko,
@@ -1274,6 +1275,142 @@ class WHController extends Controller
                             'FC_STOCKCODE' => $d->FC_STOCKCODE,
                             'FV_STOCKNAME' => $d->FV_STOCKNAME,
                             'FC_REGIONDESC' => $fc_region,
+                            'FN_QTY'       => $d->FN_QTY,
+                            'FN_EXTRA'     => $d->FN_EXTRA,
+                            'KUBIKASI'     => $d->KUBIKASI,
+                            'CONFIRM'      => 'NO',
+                            'KODE_RAYON'   => $d->KODE_RAYON
+                        ]);
+                    }
+                    if ($guard == 100) {
+                        DB::connection('sqlsrv')->table('routingdetailorders')->insert($result);
+                        $result = [];
+                        $guard  = 0;
+                    }
+                    $guard += 1;
+                }
+                if ($guard > 0) {
+                    DB::connection('sqlsrv')->table('routingdetailorders')->insert($result);
+                    $result = [];
+                    $guard  = 0;
+                }
+            }
+            return redirect('/pilih/' . $routing);
+        }
+        return redirect('/pilih/' . $routing);
+    }
+
+    public function detail_rayon(Request $request)
+    {
+        if (!isset($_POST['detail_rayon'])) {
+            return redirect('/routing-list');
+        }
+
+        $user      = Auth::user();
+        $rayon = $request->KODE_RAYON;
+        $routing   = $request->norouting;
+        $branch = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, CODE_STOF FROM [d_transaksi].[dbo].[routers] WITH (NOLOCK) WHERE NOROUTING = '$routing'");
+        if ($branch) {
+            $code_stof = $branch[0]->CODE_STOF;
+            if ($branch[0]->FC_BRANCH != $user->fc_branch) {
+                return redirect('/routing-list');
+            }
+            $load = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.KODE_RAYON,
+                                                          A.FC_CUSTCODE, A.FV_CUSTNAME, A.FC_REGIONDESC AS KELURAHAN, SUM(A.KUBIKASI) AS KUBIK,
+                                                          A.SHIPNAME, A.SHIPADDRESS
+                                                          FROM [d_transaksi].[dbo].[temporarydetailorders] A WITH (NOLOCK) 
+                                                          LEFT JOIN [d_transaksi].[dbo].[routingcustomer] B WITH (NOLOCK)
+                                                          ON A.FC_BRANCH = B.FC_BRANCH AND A.FC_SONO = B.FC_SONO
+                                                          WHERE A.FC_BRANCH = '$code_stof' 
+                                                          AND A.KODE_RAYON = '$rayon'
+                                                          AND B.FC_SONO IS NULL
+                                                          GROUP BY A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FC_REGIONDESC, A.SHIPNAME, A.SHIPADDRESS, A.KODE_RAYON
+                                                          ORDER BY FC_SONO 
+                                                          ");
+            $total_toko_routing = DB::connection('sqlsrv')->select("SELECT COUNT(NOROUTING) AS toko FROM [d_transaksi].[dbo].[routingcustomer] WITH (NOLOCK) WHERE FC_BRANCH = '$code_stof' AND NOROUTING = '$routing'");
+            $kubikasi_routing = DB::connection('sqlsrv')->select("SELECT SUM(KUBIKASI) AS KUBIK FROM [d_transaksi].[dbo].[routingdetailorders] WITH (NOLOCK) WHERE FC_BRANCH = '$code_stof' AND NOROUTING = '$routing'");
+            $info_toko = DB::connection('sqlsrv')->select("SELECT SUM(KUBIKASI) AS KUBIK FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK) WHERE FC_BRANCH = '$code_stof'");
+            $toko = DB::connection('sqlsrv')->select("SELECT DISTINCT FC_SONO FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK) WHERE FC_BRANCH = '$code_stof'");
+            return view('wh/routing/after_kubikasi', [
+                "data" => $load,
+                "kubikasi_load" => $info_toko[0],
+                "toko_load" => $toko,
+                "toko_routing" => $total_toko_routing[0],
+                "kubikasi"     => $kubikasi_routing[0],
+                "isGroup" => false,
+                "routing" => $routing,
+            ]);
+        }
+    }
+
+    public function pilih_rayon(Request $request)
+    {
+        if (!isset($_POST['pilih_rayon'])) {
+            return redirect('/pilih/' . $request->norouting);
+        }
+        $user      = Auth::user();
+        $routing   = $request->norouting;
+        $rayon = $request->KODE_RAYON;
+        $branch = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, CODE_STOF FROM [d_transaksi].[dbo].[routers] WITH (NOLOCK) WHERE NOROUTING = '$routing'");
+        if ($branch) {
+            $code_stof = $branch[0]->CODE_STOF;
+            if ($branch[0]->FC_BRANCH != $user->fc_branch) {
+                return redirect('/routing-list');
+            }
+            $data = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, FC_SONO,
+                                                             FC_STOCKCODE, FV_STOCKNAME, KODE_RAYON,
+                                                             FC_REGIONDESC, FN_QTY, FN_EXTRA, KUBIKASI FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
+                                                      WHERE KODE_RAYON = '$rayon'");
+            $toko = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FC_REGIONDESC AS KELURAHAN, SUM(A.KUBIKASI) AS KUBIKASI, A.KODE_RAYON
+                                                      FROM [d_transaksi].[dbo].[temporarydetailorders] A WITH (NOLOCK)
+                                                      WHERE A.FC_BRANCH = '$code_stof' AND A.KODE_RAYON = '$rayon'
+                                                      GROUP BY A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FC_REGIONDESC, A.KODE_RAYON");
+            if ($toko) {
+                $will_insert = [];
+                $guard       = 0;
+                foreach ($toko as $d) {
+                    $cek_routing = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, FC_SONO, FC_CUSTCODE FROM [d_transaksi].[dbo].[routingcustomer] WITH (NOLOCK)
+                                                                     WHERE FC_BRANCH = '$d->FC_BRANCH' AND FC_SONO = '$d->FC_SONO' AND FC_CUSTCODE = '$d->FC_CUSTCODE'");
+                    if (!$cek_routing) {
+                        array_push($will_insert, [
+                            'FC_BRANCH'     => $d->FC_BRANCH,
+                            'NOROUTING'     => $routing,
+                            'FC_SONO'       => $d->FC_SONO,
+                            'FD_SODATE'     => $d->FD_SODATE,
+                            'FC_CUSTCODE'   => $d->FC_CUSTCODE,
+                            'FV_CUSTNAME'   => $d->FV_CUSTNAME,
+                            'FC_REGIONDESC' => $d->KELURAHAN,
+                            'KUBIKASI'      => $d->KUBIKASI,
+                            'KODE_RAYON'    => $d->KODE_RAYON
+                        ]);
+                    }
+                    if ($guard == 100) {
+                        DB::connection('sqlsrv')->table('routingcustomer')->insert($will_insert);
+                        $guard = 0;
+                        $will_insert = [];
+                    }
+                    $guard += 1;
+                }
+                if ($guard > 0) {
+                    DB::connection('sqlsrv')->table('routingcustomer')->insert($will_insert);
+                    $guard = 0;
+                    $will_insert = [];
+                }
+            }
+            if ($data) {
+                $result = [];
+                $guard = 0;
+                foreach ($data as $d) {
+                    $cek_detail = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, FC_SONO, FC_STOCKCODE FROM [d_transaksi].[dbo].[routingdetailorders] WITH (NOLOCK)
+                                                                    WHERE FC_BRANCH = '$code_stof' AND FC_SONO = '$d->FC_SONO' AND FC_STOCKCODE = '$d->FC_STOCKCODE'");
+                    if (!$cek_detail) {
+                        array_push($result, [
+                            'FC_BRANCH'    => $d->FC_BRANCH,
+                            'NOROUTING'    => $routing,
+                            'FC_SONO'      => $d->FC_SONO,
+                            'FC_STOCKCODE' => $d->FC_STOCKCODE,
+                            'FV_STOCKNAME' => $d->FV_STOCKNAME,
+                            'FC_REGIONDESC' => $d->FC_REGIONDESC,
                             'FN_QTY'       => $d->FN_QTY,
                             'FN_EXTRA'     => $d->FN_EXTRA,
                             'KUBIKASI'     => $d->KUBIKASI,
