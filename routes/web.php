@@ -107,6 +107,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/area', [AreaController::class, 'index']);
         Route::get('/input-area', [AreaController::class, 'input'])->name('input-area');
         Route::post('/store-area', [AreaController::class, 'store']);
+        Route::post('/store-area-dc', [AreaController::class, 'store_dc']);
     });
 
     Route::group(['middleware' => ['CekLogin:3']], function () {

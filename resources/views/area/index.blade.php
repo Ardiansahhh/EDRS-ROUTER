@@ -23,6 +23,9 @@
                                 <thead>
                                     <tr>
                                         <th>BRANCH</th>
+                                        @if ($dc)
+                                            <th>Satelite Office</th>
+                                        @endif
                                         <th>Kode Area</th>
                                         <th>Nama Area</th>
                                     </tr>
@@ -31,6 +34,9 @@
                                     @foreach ($data as $item)
                                         <tr>
                                             <td>{{ $item->fc_branch }}</td>
+                                            @if ($dc)
+                                                <td>{{ $item->code_stof }}</td>
+                                            @endif
                                             <td>{{ $item->kode_area }}</td>
                                             <td>{{ $item->nama_area }}</td>
                                         </tr>

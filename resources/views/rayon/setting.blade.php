@@ -17,14 +17,18 @@
                                                 </div>
                                                 <!-- /.card-header -->
                                                 <div class="card-body">
-                                                    <form action="/load-rayon" method="post">
-                                                        @csrf
-                                                        <input type="hidden" name="FC_BRANCH"
-                                                            value="{{ Auth::user()->fc_branch }}">
-                                                        <input type="hidden" name="kode_rayon" value="{{ $rayon }}">
-                                                        <button type="submit" name="load_rayon" class="btn btn-success"><i
-                                                                class="fas fa-download"></i> Load Data</button>
-                                                    </form><br>
+                                                    @if (!$is_dc)
+                                                        <form action="/load-rayon" method="post">
+                                                            @csrf
+                                                            <input type="hidden" name="FC_BRANCH"
+                                                                value="{{ Auth::user()->fc_branch }}">
+                                                            <input type="hidden" name="kode_rayon"
+                                                                value="{{ $rayon }}">
+                                                            <button type="submit" name="load_rayon"
+                                                                class="btn btn-success"><i class="fas fa-download"></i> Load
+                                                                Data</button>
+                                                        </form><br>
+                                                    @endif
                                                     @if (session()->has('session'))
                                                         <div class="alert alert-danger alert-dismissible text-center fade show"
                                                             role="alert">
@@ -35,6 +39,40 @@
                                                         <div class="alert alert-success alert-dismissible text-center fade show"
                                                             role="alert">
                                                             {{ session('success') }}</div>
+                                                    @endif
+                                                    @if ($is_dc)
+                                                        <form action="/load-rayon" method="post">
+                                                            @csrf
+                                                            <div class="row">
+                                                                <div class="col-sm-5">
+                                                                    <!-- text input -->
+                                                                    <div class="form-group">
+                                                                        <input type="hidden" name="kode_rayon"
+                                                                            value="{{ $rayon }}">
+                                                                        <label>Cabang</label>
+                                                                        <select name="fc_branch" class="form-control">
+                                                                            @foreach ($dc as $item)
+                                                                                <option value="{{ $item->CODE_STOF }}">
+                                                                                    {{ $item->SATELITE_OFFICE }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                            <option value="{{ Auth::user()->fc_branch }}">
+                                                                                {{ Auth::user()->fc_branch }}
+                                                                            </option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-sm-2">
+                                                                    <label>Load</label>
+                                                                    <div class="form-group">
+                                                                        <button type="submit" name="load_rayon"
+                                                                            class="form-control btn btn-info"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#exampleModal3">Load</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </form>
                                                     @endif
                                                     <form action="/search-customer" method="post">
                                                         @csrf
@@ -141,6 +179,7 @@
                             <table id="example2" class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
+                                        <th>No.</th>
                                         <th>BRANCH</th>
                                         <th>Kode Customer</th>
                                         <th>Nama</th>
@@ -153,8 +192,10 @@
                                 </thead>
                                 <tbody>
                                     @if ($isContent)
+                                        <?php $no = 1; ?>
                                         @foreach ($data as $item)
                                             <tr>
+                                                <td>{{ $no }}</td>
                                                 <td>{{ $item->FC_BRANCH }}</td>
                                                 <td>{{ $item->FC_CUSTCODE }}</td>
                                                 <td>{{ $item->FV_CUSTNAME }}</td>
@@ -172,6 +213,7 @@
                                                             value="{{ $rayon }}">
                                                     </td>
                                             </tr>
+                                            <?php $no++; ?>
                                         @endforeach
                                     @else
                                     @endif

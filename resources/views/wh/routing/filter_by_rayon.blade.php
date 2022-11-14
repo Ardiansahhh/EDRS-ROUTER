@@ -170,6 +170,7 @@
                                                                      <label>Berdasarkan</label>
                                                                      <select name="filter_by" class="custom-select">
                                                                          <option value="FC_REGIONDESC">Kelurahan</option>
+                                                                         <option value="RAYON">Rayon</option>
                                                                          <option value="GT">GT</option>
                                                                          <option value="MT">MT</option>
                                                                      </select>
