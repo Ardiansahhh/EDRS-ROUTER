@@ -621,7 +621,7 @@ class WHController extends Controller
                     $will_insert = [];
                 }
 
-                $detail = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.FC_SONO, A.FC_STOCKCODE, A.FC_REGIONDESC, A.FV_STOCKNAME, A.FN_QTY, A.FN_EXTRA, A.KUBIKASI, A.KODE_RAYON
+                $detail = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.FC_SONO, A.FC_STOCKCODE, A.FC_REGIONDESC, A.FV_STOCKNAME, A.FN_QTY, A.FN_EXTRA, A.KUBIKASI, A.KODE_RAYON, A.UOM
                                                        FROM [d_transaksi].[dbo].[temporarydetailorders] A WITH (NOLOCK)
                                                        INNER JOIN [d_transaksi].[dbo].[routingcustomer] B WITH (NOLOCK)
                                                        ON A.FC_BRANCH = B.FC_BRANCH AND A.FC_SONO = B.FC_SONO");
@@ -643,7 +643,8 @@ class WHController extends Controller
                                 'FN_EXTRA'     => $d->FN_EXTRA,
                                 'KUBIKASI'     => $d->KUBIKASI,
                                 'CONFIRM'      => 'NO',
-                                'KODE_RAYON'   => $d->KODE_RAYON
+                                'KODE_RAYON'   => $d->KODE_RAYON,
+                                'UOM'          => $d->UOM
                             ]);
                         }
                         if ($guard == 100) {
@@ -690,12 +691,13 @@ class WHController extends Controller
             if (!$NOROUTING) {
                 return redirect('/routing-list');
             }
-            $data = DB::connection('sqlsrv')->select("SELECT A.FC_STOCKCODE, A.FV_STOCKNAME, 
+            $data = DB::connection('sqlsrv')->select("SELECT A.FC_STOCKCODE, A.FV_STOCKNAME, A.UOM,
                                                      SUM(A.FN_QTY) AS QTY, SUM(A.FN_EXTRA) AS EXTRA, SUM(A.KUBIKASI) AS KUBIK
                                                      FROM [d_transaksi].[dbo].[routingdetailorders] A WITH (NOLOCK)
+                                                     LEFT JOIN [d_master].[dbo].[MASTER_KUBIKASI] B WITH (NOLOCK)
+                                                     ON A.FC_STOCKCODE = B.FC_STOCKCODE
                                                      WHERE A.FC_BRANCH = '$code_stof' AND A.NOROUTING = '$NOROUTING'
-                                                     GROUP BY A.FC_STOCKCODE, A.FV_STOCKNAME");
-
+                                                     GROUP BY A.FC_STOCKCODE, A.FV_STOCKNAME, A.UOM");
             return view('wh/routing/detail_barang_routing', [
                 "barang" => $data,
                 "routing" => $NOROUTING,
@@ -1227,7 +1229,7 @@ class WHController extends Controller
                 return redirect('/routing-list');
             }
             $data = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, FC_SONO,
-                                                             FC_STOCKCODE, FV_STOCKNAME, KODE_RAYON,
+                                                             FC_STOCKCODE, FV_STOCKNAME, KODE_RAYON, UOM,
                                                              FC_REGIONDESC, FN_QTY, FN_EXTRA, KUBIKASI FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
                                                       WHERE FC_REGIONDESC = '$fc_region'");
             $toko = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FC_REGIONDESC AS KELURAHAN, SUM(A.KUBIKASI) AS KUBIKASI, A.KODE_RAYON
@@ -1284,7 +1286,8 @@ class WHController extends Controller
                             'FN_EXTRA'     => $d->FN_EXTRA,
                             'KUBIKASI'     => $d->KUBIKASI,
                             'CONFIRM'      => 'NO',
-                            'KODE_RAYON'   => $d->KODE_RAYON
+                            'KODE_RAYON'   => $d->KODE_RAYON,
+                            'UOM'          => $d->UOM
                         ]);
                     }
                     if ($guard == 100) {
@@ -1362,7 +1365,7 @@ class WHController extends Controller
             if ($branch[0]->FC_BRANCH != $user->fc_branch) {
                 return redirect('/routing-list');
             }
-            $data = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, FC_SONO,
+            $data = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, FC_SONO, UOM,
                                                              FC_STOCKCODE, FV_STOCKNAME, KODE_RAYON,
                                                              FC_REGIONDESC, FN_QTY, FN_EXTRA, KUBIKASI FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK)
                                                       WHERE KODE_RAYON = '$rayon'");
@@ -1420,7 +1423,8 @@ class WHController extends Controller
                             'FN_EXTRA'     => $d->FN_EXTRA,
                             'KUBIKASI'     => $d->KUBIKASI,
                             'CONFIRM'      => 'NO',
-                            'KODE_RAYON'   => $d->KODE_RAYON
+                            'KODE_RAYON'   => $d->KODE_RAYON,
+                            'UOM'          => $d->UOM
                         ]);
                     }
                     if ($guard == 100) {
@@ -1522,11 +1526,11 @@ class WHController extends Controller
             if (!$NOROUTING) {
                 return redirect('/routing-list');
             }
-            $data = DB::connection('sqlsrv')->select("SELECT A.FC_STOCKCODE, A.FV_STOCKNAME, 
+            $data = DB::connection('sqlsrv')->select("SELECT A.FC_STOCKCODE, A.FV_STOCKNAME, A.UOM,
                                                      SUM(A.FN_QTY) AS QTY, SUM(A.FN_EXTRA) AS EXTRA, SUM(A.KUBIKASI) AS KUBIK
                                                      FROM [d_transaksi].[dbo].[routingdetailorders] A WITH (NOLOCK)
                                                      WHERE A.FC_BRANCH = '$code_stof' AND A.NOROUTING = '$NOROUTING'
-                                                     GROUP BY A.FC_STOCKCODE, A.FV_STOCKNAME");
+                                                     GROUP BY A.FC_STOCKCODE, A.FV_STOCKNAME, A.UOM");
 
             return view('wh/routing/cetak_barang', [
                 "barang" => $data,

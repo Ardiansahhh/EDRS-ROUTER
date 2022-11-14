@@ -259,8 +259,10 @@
                                                  <th>NO</th>
                                                  <th>STOCKCODE</th>
                                                  <th>STOCKNAME</th>
-                                                 <th>QTY</th>
-                                                 <th>EXTRA</th>
+                                                 <th>Karton</th>
+                                                 <th>Pcs</th>
+                                                 <th>EXTRA(pcs)</th>
+                                                 <th>Total Keseluruhan</th>
                                                  <th>KUBIKASI</th>
                                              </tr>
                                          </thead>
@@ -271,8 +273,16 @@
                                                      <td>{{ $no }}</td>
                                                      <td>{{ $d->FC_STOCKCODE }}</td>
                                                      <td>{{ $d->FV_STOCKNAME }}</td>
-                                                     <td>{{ $d->QTY }}</td>
+                                                     <td>{{ floor((int) $d->QTY / (int) $d->UOM) }}</td>
+                                                     <td>
+                                                         <?php if ((int) $d->QTY >= (int) $d->UOM) {
+                                                             echo (int) $d->QTY % (int) $d->UOM;
+                                                         } else {
+                                                             echo (int) $d->QTY;
+                                                         } ?>
+                                                     </td>
                                                      <td>{{ $d->EXTRA }}</td>
+                                                     <td>{{ $d->QTY }}</td>
                                                      <td>{{ $d->KUBIK / 1000000 }}</td>
                                                      <?php $no++; ?>
                                                  </tr>
