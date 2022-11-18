@@ -26,9 +26,10 @@ class RayonController extends Controller
         if ($check_dc) {
             $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch' AND setting = 'NO'");
             return view('rayon/input', ['data' => $data, 'dc' => true]);
+        } else {
+            $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch' AND setting = 'NO'");
+            return view('rayon/input', ['data' => $data, 'dc' => false]);
         }
-        $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch' AND setting = 'NO'");
-        return view('rayon/input', ['data' => $data, 'dc' => false]);
     }
 
     // public function store(Request $request)
@@ -93,7 +94,13 @@ class RayonController extends Controller
             return redirect('/rayon');
         }
 
-        $cek_toko = $this->getAllTemporaryby($user->fc_branch, null, 'branch');
+        $cek_toko = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTADD1, A.FV_CUSTCITY, A.FC_SHIPCODE, A.FV_SHIPADD1, A.CODE_STOF
+                                                         FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
+                                                         LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] B WITH (NOLOCK)
+                                                         ON A.CODE_STOF = B.code_stof AND A.FC_CUSTCODE = B.fc_custcode AND A.FC_SHIPCODE = B.fc_shipcode
+                                                         WHERE A.FC_BRANCH = '$user->fc_branch' 
+                                                         AND B.fc_custcode IS NULL
+                                                         ORDER BY A.FC_CUSTCODE");
         $count = count($this->getRayonDetail($kode_rayon, $user->fc_branch, 'allCodeRayon'));
 
         $check_dc = DB::connection('other')->select("SELECT CODE_STOF, FC_BRANCH, SATELITE_OFFICE
@@ -458,6 +465,10 @@ class RayonController extends Controller
             $this->inputRayonDetail($data[0]->FC_BRANCH, $request->kode_rayon, $data[0]->FC_CUSTCODE, $data[0]->FV_CUSTNAME, $data[0]->FV_CUSTADD1, $data[0]->FV_CUSTCITY);
             return redirect('/setting-rayon/' . $request->kode_rayon)->with('success', 'Kode Customer ' . $code . ' Berhasil Ditambahkan');
         }
+
+        if ($length > 6) {
+            return redirect('/setting-rayon/' . $request->kode_rayon)->with('session', 'Kode Customer lebih dari 6 karakter');
+        }
     }
 
     public function detailRayon($rayon)
@@ -479,15 +490,30 @@ class RayonController extends Controller
                                                         END AS alamat
                                                      FROM [CSAREPORT].[dbo].[t_rayon_detail] A WITH (NOLOCK)
                                                      WHERE fc_branch = '$user->fc_branch' AND kode_rayon = '$rayon'");
+        $check_dc = DB::connection('other')->select("SELECT CODE_STOF, FC_BRANCH, SATELITE_OFFICE
+                                                     FROM [d_master].[dbo].[t_dc_details] WHERE FC_BRANCH = '$user->fc_branch'");
         if (!$data) {
             return redirect('/rayon');
+        } else {
+            if ($check_dc) {
+                return view('rayon/detail_toko_rayon', [
+                    'data' => $data,
+                    'rayon' => $rayon,
+                    'isContent' => true,
+                    'total'     => count($data),
+                    'dc'        => $check_dc,
+                    'is_dc'     => true
+                ]);
+            } else {
+                return view('rayon/detail_toko_rayon', [
+                    'data' => $data,
+                    'rayon' => $rayon,
+                    'isContent' => true,
+                    'total'     => count($data),
+                    'is_dc'     => false
+                ]);
+            }
         }
-        return view('rayon/detail_toko_rayon', [
-            'data' => $data,
-            'rayon' => $rayon,
-            'isContent' => true,
-            'total'     => count($data)
-        ]);
     }
 
     public function search_customer(Request $request)
@@ -593,7 +619,7 @@ class RayonController extends Controller
                 }
             }
         } elseif ($request->pilih == 'FV_CUSTADD1') {
-            $data = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTCITY, A.FC_SHIPCODE, A.FV_CUSTADD1 AS ALAMAT
+            $data = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTCITY, A.FC_SHIPCODE, A.FV_CUSTADD1 AS ALAMAT, A.CODE_STOF
                                                          FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
                                                          LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] B WITH (NOLOCK) ON
                                                          A.FC_BRANCH = B.fc_branch AND A.FC_CUSTCODE = B.fc_custcode AND A.FC_SHIPCODE = B.fc_shipcode
@@ -641,7 +667,7 @@ class RayonController extends Controller
                 }
             }
         } elseif ($request->pilih == 'FV_SHIPADD1') {
-            $data = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTCITY, A.FC_SHIPCODE, A.FV_SHIPADD1 AS ALAMAT
+            $data = DB::connection('CSAREPORT')->select("SELECT A.FC_BRANCH, A.FC_CUSTCODE, A.FV_CUSTNAME, A.FV_CUSTCITY, A.FC_SHIPCODE, A.FV_SHIPADD1 AS ALAMAT, A.CODE_STOF
                                                          FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
                                                          LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] B WITH (NOLOCK) ON
                                                          A.FC_BRANCH = B.fc_branch AND A.FC_CUSTCODE = B.fc_custcode AND A.FC_SHIPCODE = B.fc_shipcode
@@ -697,6 +723,7 @@ class RayonController extends Controller
             return redirect('/setting-rayon/' . $request->kode_rayon);
         }
 
+        $user   = Auth::user();
         $branch = $request->FC_BRANCH;
         $rayon  = $request->kode_rayon;
         $will_insert = [];
@@ -708,19 +735,20 @@ class RayonController extends Controller
             if ($shipto[1]) {
                 $check_toko = DB::connection('CSAREPORT')->select("SELECT fc_branch, kode_rayon, fc_custcode, fc_shipcode
                                                                FROM [CSAREPORT].[dbo].[t_rayon_detail] A WITH (NOLOCK)
-                                                               WHERE A.fc_branch = '$branch' AND A.fc_custcode = '$shipto[0]' AND fc_shipcode = '$shipto[1]'");
+                                                               WHERE A.code_stof = '$branch' AND A.fc_custcode = '$shipto[0]' AND fc_shipcode = '$shipto[1]'");
                 if (!$check_toko) {
                     $toko = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
-                                                             WHERE A.FC_BRANCH = '$branch' AND A.FC_CUSTCODE = '$shipto[0]' AND A.FC_SHIPCODE = '$shipto[1]'");
+                                                             WHERE A.CODE_STOF = '$branch' AND A.FC_CUSTCODE = '$shipto[0]' AND A.FC_SHIPCODE = '$shipto[1]'");
                     array_push($will_insert, [
-                        'fc_branch'   => $branch,
+                        'fc_branch'   => $user->fc_branch,
                         'kode_rayon'  => $rayon,
                         'fc_custcode' => $shipto[0],
                         'fv_custname' => $toko[0]->FV_CUSTNAME,
                         'fv_custadd1' => $toko[0]->FV_CUSTADD1,
                         'fv_custcity' => $toko[0]->FV_CUSTCITY,
                         'fc_shipcode' => $toko[0]->FC_SHIPCODE,
-                        'fv_shipadd1' => $toko[0]->FV_SHIPADD1
+                        'fv_shipadd1' => $toko[0]->FV_SHIPADD1,
+                        'code_stof'   => $branch
                     ]);
                     if ($guard == 80) {
                         DB::connection('CSAREPORT')->table('t_rayon_detail')->insert($will_insert);
@@ -732,19 +760,20 @@ class RayonController extends Controller
             } else {
                 $check_toko = DB::connection('CSAREPORT')->select("SELECT fc_branch, kode_rayon, fc_custcode, fc_shipcode
                                                                    FROM [CSAREPORT].[dbo].[t_rayon_detail] A WITH (NOLOCK)
-                                                                   WHERE A.fc_branch = '$branch' AND A.fc_custcode = '$shipto[0]'");
+                                                                   WHERE A.code_stof = '$branch' AND A.fc_custcode = '$shipto[0]'");
                 if (!$check_toko) {
                     $toko = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_temporary_customer] A WITH (NOLOCK)
-                                                                 WHERE A.FC_BRANCH = '$branch' AND A.FC_CUSTCODE = '$shipto[0]'");
+                                                                 WHERE A.CODE_STOF = '$branch' AND A.FC_CUSTCODE = '$shipto[0]'");
                     array_push($will_insert, [
-                        'fc_branch'   => $branch,
+                        'fc_branch'   => $user->fc_branch,
                         'kode_rayon'  => $rayon,
                         'fc_custcode' => $shipto[0],
                         'fv_custname' => $toko[0]->FV_CUSTNAME,
                         'fv_custadd1' => $toko[0]->FV_CUSTADD1,
                         'fv_custcity' => $toko[0]->FV_CUSTCITY,
                         'fc_shipcode' => $toko[0]->FC_SHIPCODE,
-                        'fv_shipadd1' => $toko[0]->FV_SHIPADD1
+                        'fv_shipadd1' => $toko[0]->FV_SHIPADD1,
+                        'code_stof'   => $branch
                     ]);
                     if ($guard == 80) {
                         DB::connection('CSAREPORT')->table('t_rayon_detail')->insert($will_insert);

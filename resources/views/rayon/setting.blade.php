@@ -208,7 +208,7 @@
                                                     <td><input type="checkbox" name="FC_CUSTCODE[]"
                                                             value="{{ $item->FC_CUSTCODE . '-' . $item->FC_SHIPCODE }}">
                                                         <input type="hidden" name="FC_BRANCH"
-                                                            value="{{ $item->FC_BRANCH }}">
+                                                            value="{{ $item->CODE_STOF }}">
                                                         <input type="hidden" name="kode_rayon"
                                                             value="{{ $rayon }}">
                                                     </td>

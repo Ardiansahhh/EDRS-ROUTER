@@ -20,7 +20,8 @@ class AreaController extends Controller
                                                                 WHEN code_stof = fc_branch THEN '-'
                                                                 ELSE code_stof
                                                             END AS code_stof
-                                                         FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch'");
+                                                         FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch'
+                                                         ORDER BY code_stof");
             return view('area/index', ['data' => $data, 'dc' => true]);
         } else {
             $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch'");

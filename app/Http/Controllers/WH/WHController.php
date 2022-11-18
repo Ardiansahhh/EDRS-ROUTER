@@ -247,7 +247,7 @@ class WHController extends Controller
                 $total_toko_routing = DB::connection('sqlsrv')->select("SELECT COUNT(NOROUTING) AS toko FROM [d_transaksi].[dbo].[routingcustomer] WITH (NOLOCK) WHERE FC_BRANCH = '$code_stof' AND NOROUTING = '$routing'");
                 $info_toko = DB::connection('sqlsrv')->select("SELECT SUM(KUBIKASI) AS KUBIK FROM [d_transaksi].[dbo].[temporarydetailorders] WITH (NOLOCK) WHERE FC_BRANCH = '$code_stof'");
                 $data = DB::connection('sqlsrv')->select("SELECT A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.FC_CUSTCODE,
-                                                     A.SHIPNAME, A.SHIPADDRESS,
+                                                     A.SHIPNAME, A.SHIPADDRESS, A.KODE_RAYON,
                                                      A.FV_CUSTNAME, A.FC_REGIONDESC AS KELURAHAN, 
                                                      SUM(A.KUBIKASI) AS KUBIK 
                                                      FROM [d_transaksi].[dbo].[temporarydetailorders] A WITH (NOLOCK)
@@ -258,7 +258,7 @@ class WHController extends Controller
                                                      AND A.FD_SODATE BETWEEN '$date1' AND '$date2'
                                                      AND B.FC_SONO IS NULL
                                                      GROUP BY A.FC_BRANCH, A.FC_SONO, A.FD_SODATE, A.FC_CUSTCODE, A.SHIPNAME, A.SHIPADDRESS,
-                                                     A.FV_CUSTNAME, A.FC_REGIONDESC");
+                                                     A.FV_CUSTNAME, A.FC_REGIONDESC, A.KODE_RAYON");
                 return view('wh/routing/after_kubikasi', [
                     "data" => $data,
                     "kubikasi_load" => $info_toko[0],
@@ -312,6 +312,11 @@ class WHController extends Controller
                                                                 A.FC_SONO,
                                                                 D.FD_SODATE,
                                                                 D.FC_CUSTCODE,
+                                                                 CASE 
+                                                                    WHEN D.FC_SHIPTO IS NULL THEN '0'
+                                                                    WHEN D.FC_SHIPTO = '' THEN '0'
+                                                                ELSE D.FC_SHIPTO
+                                                                END AS SHIPTO,
                                                                 A.FC_STOCKCODE,
                                                                 A.FN_QTY,
                                                                 A.FN_EXTRA,
@@ -367,60 +372,121 @@ class WHController extends Controller
                         $guard = 0;
                         foreach ($mainserver as $main) {
                             $barang = DB::connection('sqlsrv')->select("SELECT KUBIKASI_PCS FROM [d_master].[dbo].[MASTER_KUBIKASI] WITH (NOLOCK) WHERE FC_STOCKCODE = '$main->FC_STOCKCODE'");
+                            $rayon = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_custcode = '$main->FC_CUSTCODE' AND fc_shipcode = '$main->SHIPTO' AND code_stof = '$code_stof'");
                             if ($barang) {
                                 $qty      = (int)$main->FN_QTY + (int)$main->FN_EXTRA;
                                 $kubikasi = (int)$barang[0]->KUBIKASI_PCS * (int)$qty;
-                                array_push($ready, [
-                                    'FC_BRANCH'     => $main->FC_BRANCH,
-                                    'FV_BRANDNAME'  => $main->FV_BRANDNAME,
-                                    'FC_SONO'       => $main->FC_SONO,
-                                    'FD_SODATE'     => $main->FD_SODATE,
-                                    'FV_CUSTNAME'   => $main->FV_CUSTNAME,
-                                    'FC_CUSTCODE'   => $main->FC_CUSTCODE,
-                                    'FC_STOCKCODE'  => $main->FC_STOCKCODE,
-                                    'FV_STOCKNAME'  => $main->FV_STOCKNAME,
-                                    'FC_REGIONDESC' => $main->fc_regiondesc,
-                                    'SHIPNAME'      => $main->SHIPNAME,
-                                    'SHIPADDRESS'   => $main->SHIPADDRESS,
-                                    'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
-                                    'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
-                                    'UoM'           => $main->FI_UOM,
-                                    'FN_QTY'        => $main->FN_QTY,
-                                    'FN_EXTRA'      => $main->FN_EXTRA,
-                                    'KUBIKASI'      => $kubikasi,
-                                ]);
-                                if ($guard == 100) {
-                                    DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
-                                    $guard = 0;
-                                    $ready = [];
+                                if ($rayon) {
+                                    array_push($ready, [
+                                        'FC_BRANCH'     => $main->FC_BRANCH,
+                                        'FV_BRANDNAME'  => $main->FV_BRANDNAME,
+                                        'FC_SONO'       => $main->FC_SONO,
+                                        'FD_SODATE'     => $main->FD_SODATE,
+                                        'FV_CUSTNAME'   => $main->FV_CUSTNAME,
+                                        'FC_CUSTCODE'   => $main->FC_CUSTCODE,
+                                        'FC_STOCKCODE'  => $main->FC_STOCKCODE,
+                                        'FV_STOCKNAME'  => $main->FV_STOCKNAME,
+                                        'FC_REGIONDESC' => $main->fc_regiondesc,
+                                        'SHIPNAME'      => $main->SHIPNAME,
+                                        'SHIPADDRESS'   => $main->SHIPADDRESS,
+                                        'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
+                                        'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
+                                        'UoM'           => $main->FI_UOM,
+                                        'FN_QTY'        => $main->FN_QTY,
+                                        'FN_EXTRA'      => $main->FN_EXTRA,
+                                        'KUBIKASI'      => $kubikasi,
+                                        'KODE_RAYON'    => $rayon[0]->kode_rayon
+                                    ]);
+                                    if ($guard == 100) {
+                                        DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
+                                        $guard = 0;
+                                        $ready = [];
+                                    }
+                                    $guard += 1;
+                                } else {
+                                    array_push($ready, [
+                                        'FC_BRANCH'     => $main->FC_BRANCH,
+                                        'FV_BRANDNAME'  => $main->FV_BRANDNAME,
+                                        'FC_SONO'       => $main->FC_SONO,
+                                        'FD_SODATE'     => $main->FD_SODATE,
+                                        'FV_CUSTNAME'   => $main->FV_CUSTNAME,
+                                        'FC_CUSTCODE'   => $main->FC_CUSTCODE,
+                                        'FC_STOCKCODE'  => $main->FC_STOCKCODE,
+                                        'FV_STOCKNAME'  => $main->FV_STOCKNAME,
+                                        'FC_REGIONDESC' => $main->fc_regiondesc,
+                                        'SHIPNAME'      => $main->SHIPNAME,
+                                        'SHIPADDRESS'   => $main->SHIPADDRESS,
+                                        'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
+                                        'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
+                                        'UoM'           => $main->FI_UOM,
+                                        'FN_QTY'        => $main->FN_QTY,
+                                        'FN_EXTRA'      => $main->FN_EXTRA,
+                                        'KUBIKASI'      => $kubikasi,
+                                        'KODE_RAYON'    => 'Belum Ada'
+                                    ]);
+                                    if ($guard == 100) {
+                                        DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
+                                        $guard = 0;
+                                        $ready = [];
+                                    }
+                                    $guard += 1;
                                 }
-                                $guard += 1;
                             } else {
-                                array_push($ready, [
-                                    'FC_BRANCH'     => $main->FC_BRANCH,
-                                    'FV_BRANDNAME'  => $main->FV_BRANDNAME,
-                                    'FC_SONO'       => $main->FC_SONO,
-                                    'FD_SODATE'     => $main->FD_SODATE,
-                                    'FV_CUSTNAME'   => $main->FV_CUSTNAME,
-                                    'FC_CUSTCODE'   => $main->FC_CUSTCODE,
-                                    'FC_STOCKCODE'  => $main->FC_STOCKCODE,
-                                    'FV_STOCKNAME'  => $main->FV_STOCKNAME,
-                                    'FC_REGIONDESC' => $main->fc_regiondesc,
-                                    'SHIPNAME'      => $main->SHIPNAME,
-                                    'SHIPADDRESS'   => $main->SHIPADDRESS,
-                                    'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
-                                    'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
-                                    'UoM'           => $main->FI_UOM,
-                                    'FN_QTY'        => $main->FN_QTY,
-                                    'FN_EXTRA'      => $main->FN_EXTRA,
-                                    'KUBIKASI'      => 0,
-                                ]);
-                                if ($guard == 100) {
-                                    DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
-                                    $guard = 0;
-                                    $ready = [];
+                                if ($rayon) {
+                                    array_push($ready, [
+                                        'FC_BRANCH'     => $main->FC_BRANCH,
+                                        'FV_BRANDNAME'  => $main->FV_BRANDNAME,
+                                        'FC_SONO'       => $main->FC_SONO,
+                                        'FD_SODATE'     => $main->FD_SODATE,
+                                        'FV_CUSTNAME'   => $main->FV_CUSTNAME,
+                                        'FC_CUSTCODE'   => $main->FC_CUSTCODE,
+                                        'FC_STOCKCODE'  => $main->FC_STOCKCODE,
+                                        'FV_STOCKNAME'  => $main->FV_STOCKNAME,
+                                        'FC_REGIONDESC' => $main->fc_regiondesc,
+                                        'SHIPNAME'      => $main->SHIPNAME,
+                                        'SHIPADDRESS'   => $main->SHIPADDRESS,
+                                        'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
+                                        'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
+                                        'UoM'           => $main->FI_UOM,
+                                        'FN_QTY'        => $main->FN_QTY,
+                                        'FN_EXTRA'      => $main->FN_EXTRA,
+                                        'KUBIKASI'      => 0,
+                                        'KODE_RAYON'    => $rayon[0]->kode_rayon
+                                    ]);
+                                    if ($guard == 100) {
+                                        DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
+                                        $guard = 0;
+                                        $ready = [];
+                                    }
+                                    $guard += 1;
+                                } else {
+                                    array_push($ready, [
+                                        'FC_BRANCH'     => $main->FC_BRANCH,
+                                        'FV_BRANDNAME'  => $main->FV_BRANDNAME,
+                                        'FC_SONO'       => $main->FC_SONO,
+                                        'FD_SODATE'     => $main->FD_SODATE,
+                                        'FV_CUSTNAME'   => $main->FV_CUSTNAME,
+                                        'FC_CUSTCODE'   => $main->FC_CUSTCODE,
+                                        'FC_STOCKCODE'  => $main->FC_STOCKCODE,
+                                        'FV_STOCKNAME'  => $main->FV_STOCKNAME,
+                                        'FC_REGIONDESC' => $main->fc_regiondesc,
+                                        'SHIPNAME'      => $main->SHIPNAME,
+                                        'SHIPADDRESS'   => $main->SHIPADDRESS,
+                                        'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
+                                        'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
+                                        'UoM'           => $main->FI_UOM,
+                                        'FN_QTY'        => $main->FN_QTY,
+                                        'FN_EXTRA'      => $main->FN_EXTRA,
+                                        'KUBIKASI'      => 0,
+                                        'KODE_RAYON'    => 'Belum Ada'
+                                    ]);
+                                    if ($guard == 100) {
+                                        DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
+                                        $guard = 0;
+                                        $ready = [];
+                                    }
+                                    $guard += 1;
                                 }
-                                $guard += 1;
                             }
                         };
                         if ($guard > 0) {
@@ -828,7 +894,7 @@ class WHController extends Controller
                 $guard = 0;
                 foreach ($data as $main) {
                     $barang = DB::connection('sqlsrv')->select("SELECT KUBIKASI_PCS FROM [d_master].[dbo].[MASTER_KUBIKASI] WITH (NOLOCK) WHERE FC_STOCKCODE = '$main->FC_STOCKCODE'");
-                    $rayon = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_branch = '$user->fc_branch' AND fc_custcode = '$main->FC_CUSTCODE' AND fc_shipcode = '$main->SHIPTO'");
+                    $rayon = DB::connection('CSAREPORT')->select("SELECT kode_rayon FROM [CSAREPORT].[dbo].[t_rayon_detail] WITH (NOLOCK) WHERE fc_custcode = '$main->FC_CUSTCODE' AND fc_shipcode = '$main->SHIPTO' AND code_stof = '$code_stof'");
                     if ($barang) {
                         $qty      = (int)$main->FN_QTY + (int)$main->FN_EXTRA;
                         $kubikasi = (int)$barang[0]->KUBIKASI_PCS * (int)$qty;
@@ -915,35 +981,36 @@ class WHController extends Controller
                                 $ready = [];
                             }
                             $guard += 1;
+                        } else {
+                            array_push($ready, [
+                                'FC_BRANCH'     => $main->FC_BRANCH,
+                                'FV_BRANDNAME'  => $main->FV_BRANDNAME,
+                                'FC_SONO'       => $main->FC_SONO,
+                                'FD_SODATE'     => $main->FD_SODATE,
+                                'FV_CUSTNAME'   => $main->FV_CUSTNAME,
+                                'FC_CUSTCODE'   => $main->FC_CUSTCODE,
+                                'FC_STOCKCODE'  => $main->FC_STOCKCODE,
+                                'FV_STOCKNAME'  => $main->FV_STOCKNAME,
+                                'FC_REGIONDESC' => $main->fc_regiondesc,
+                                'SHIPNAME'      => $main->SHIPNAME,
+                                'SHIPADDRESS'   => $main->SHIPADDRESS,
+                                'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
+                                'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
+                                'UoM'           => $main->FI_UOM,
+                                'FN_QTY'        => $main->FN_QTY,
+                                'FN_EXTRA'      => $main->FN_EXTRA,
+                                'KUBIKASI'      => 0,
+                                "KODE_RAYON"    => 'Belum Ada'
+                            ]);
+                            if ($guard == 100) {
+                                DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
+                                $guard = 0;
+                                $ready = [];
+                            }
+                            $guard += 1;
                         }
-                        array_push($ready, [
-                            'FC_BRANCH'     => $main->FC_BRANCH,
-                            'FV_BRANDNAME'  => $main->FV_BRANDNAME,
-                            'FC_SONO'       => $main->FC_SONO,
-                            'FD_SODATE'     => $main->FD_SODATE,
-                            'FV_CUSTNAME'   => $main->FV_CUSTNAME,
-                            'FC_CUSTCODE'   => $main->FC_CUSTCODE,
-                            'FC_STOCKCODE'  => $main->FC_STOCKCODE,
-                            'FV_STOCKNAME'  => $main->FV_STOCKNAME,
-                            'FC_REGIONDESC' => $main->fc_regiondesc,
-                            'SHIPNAME'      => $main->SHIPNAME,
-                            'SHIPADDRESS'   => $main->SHIPADDRESS,
-                            'FC_CUSTTYPE'   => $main->FC_CUSTTYPE,
-                            'FC_CUSTJENIS'  => $main->FC_CUSTJENIS,
-                            'UoM'           => $main->FI_UOM,
-                            'FN_QTY'        => $main->FN_QTY,
-                            'FN_EXTRA'      => $main->FN_EXTRA,
-                            'KUBIKASI'      => 0,
-                            "KODE_RAYON"    => 'Belum Ada'
-                        ]);
-                        if ($guard == 100) {
-                            DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
-                            $guard = 0;
-                            $ready = [];
-                        }
-                        $guard += 1;
                     }
-                };
+                }
                 if ($guard > 0) {
                     DB::connection('sqlsrv')->table('temporarydetailorders')->insert($ready);
                 }
@@ -1539,5 +1606,100 @@ class WHController extends Controller
             ]);
         }
         return redirect('/pilih/' . $NOROUTING);
+    }
+
+    public function recount(Request $request)
+    {
+        if (!isset($_POST['recount'])) {
+            return redirect()->back();
+        }
+
+        $routing = $request->norouting;
+        $user = Auth::user();
+        $dt = Carbon::now();
+        $branch = DB::connection('sqlsrv')->select("SELECT FC_BRANCH, CODE_STOF FROM [d_transaksi].[dbo].[routers] WITH (NOLOCK) WHERE NOROUTING = '$routing'");
+        if ($branch) {
+            if ($branch[0]->FC_BRANCH != $user->fc_branch) {
+                return redirect('/routing-list');
+            }
+        }
+
+        $routing   = $request->norouting;
+        $code_stof = $branch[0]->CODE_STOF;
+        $data = DB::connection('sqlsrv')->select("SELECT DISTINCT A.* FROM [d_transaksi].[dbo].[routingcustomer] A WITH (NOLOCK) 
+                                                  INNER JOIN [d_transaksi].[dbo].[temporarydetailorders] B WITH (NOLOCK) ON
+                                                  A.FC_BRANCH = B.FC_BRANCH AND A.FC_SONO = B.FC_SONO 
+                                                  WHERE A.FC_BRANCH = '$code_stof'");
+        $barang = DB::connection('sqlsrv')->select("SELECT A.* FROM [d_transaksi].[dbo].[temporarydetailorders] A WITH (NOLOCK)
+                                                    INNER JOIN [d_transaksi].[dbo].[routingcustomer] B WITH (NOLOCK) ON
+                                                    A.FC_BRANCH = B.FC_BRANCH AND A.FC_SONO = B.FC_SONO
+                                                    WHERE A.FC_BRANCH = '$code_stof'");
+        DB::connection('sqlsrv')->delete("DELETE FROM [d_transaksi].[dbo].[routingcustomer] WHERE FC_BRANCH = '$code_stof' AND NOROUTING = '$routing'");
+        DB::connection('sqlsrv')->delete("DELETE FROM [d_transaksi].[dbo].[routingdetailorders] WHERE FC_BRANCH = '$code_stof' AND NOROUTING = '$routing'");
+        $guard = 0;
+        $insert = [];
+        foreach ($data as $d) {
+            array_push(
+                $insert,
+                [
+                    'FC_BRANCH'     => $d->FC_BRANCH,
+                    'NOROUTING'     => $d->NOROUTING,
+                    'FC_SONO'       => $d->FC_SONO,
+                    'FD_SODATE'     => $d->FD_SODATE,
+                    'FC_CUSTCODE'   => $d->FC_CUSTCODE,
+                    'FV_CUSTNAME'   => $d->FV_CUSTNAME,
+                    'FC_REGIONDESC' => $d->FC_REGIONDESC,
+                    'SHIPNAME'      => $d->SHIPNAME,
+                    'SHIPADDRESS'   => $d->SHIPADDRESS,
+                    'FC_CUSTTYPE'   => $d->FC_CUSTTYPE,
+                    'FC_CUSTJENIS'  => $d->FC_CUSTJENIS,
+                    'KUBIKASI'      => $d->KUBIKASI,
+                    'KODE_RAYON'    => $d->KODE_RAYON
+                ]
+            );
+            if ($guard == 100) {
+                DB::connection('sqlsrv')->table('routingcustomer')->insert($insert);
+                $guard = 0;
+                $insert = [];
+            }
+            $guard += 1;
+        }
+        if ($guard > 0) {
+            DB::connection('sqlsrv')->table('routingcustomer')->insert($insert);
+            $guard = 0;
+            $insert = [];
+        }
+
+        $guard2  = 0;
+        $insert2 = [];
+        foreach ($barang as $brg) {
+            array_push($insert2, [
+                'FC_BRANCH'     => $brg->FC_BRANCH,
+                'NOROUTING'     => $routing,
+                'FC_SONO'       => $brg->FC_SONO,
+                'FC_STOCKCODE'  => $brg->FC_STOCKCODE,
+                'FV_STOCKNAME'  => $brg->FV_STOCKNAME,
+                'FC_REGIONDESC' => $brg->FC_REGIONDESC,
+                'FN_QTY'        => $brg->FN_QTY,
+                'FN_EXTRA'      => $brg->FN_EXTRA,
+                'KUBIKASI'      => $brg->KUBIKASI,
+                'CONFIRM'       => 'NO',
+                'KODE_RAYON'    => $brg->KODE_RAYON,
+                'UoM'           => $brg->UoM,
+            ]);
+            if ($guard2 == 100) {
+                DB::connection('sqlsrv')->table('routingdetailorders')->insert($insert2);
+                $guard2 = 0;
+                $insert2 = [];
+            }
+            $guard2 += 1;
+        }
+        if ($guard2 > 0) {
+            DB::connection('sqlsrv')->table('routingdetailorders')->insert($insert2);
+            $guard2 = 0;
+            $insert2 = [];
+        }
+
+        return redirect('/pilih/' . $routing);
     }
 }

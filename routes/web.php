@@ -75,6 +75,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/pilih-rayon',  [WHController::class, 'pilih_rayon']);
         Route::get('/cetak-toko/{routing}', [WHController::class, 'cetak_toko']);
         Route::get('/cetak-barang/{routing}', [WHController::class, 'cetak_barang']);
+        Route::post('/recount', [WHController::class, 'recount']);
 
         // Route for filter kode
         Route::post('/filter_kode', [WHController::class, 'filter_kode']);
