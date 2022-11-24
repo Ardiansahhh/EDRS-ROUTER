@@ -17,18 +17,15 @@
                                                 </div>
                                                 <!-- /.card-header -->
                                                 <div class="card-body">
-                                                    @if (!$is_dc)
-                                                        <form action="/load-rayon" method="post">
-                                                            @csrf
-                                                            <input type="hidden" name="FC_BRANCH"
-                                                                value="{{ Auth::user()->fc_branch }}">
-                                                            <input type="hidden" name="kode_rayon"
-                                                                value="{{ $rayon }}">
-                                                            <button type="submit" name="load_rayon"
-                                                                class="btn btn-success"><i class="fas fa-download"></i> Load
-                                                                Data</button>
-                                                        </form><br>
-                                                    @endif
+                                                    <form action="/load-rayon" method="post">
+                                                        @csrf
+                                                        <input type="hidden" name="FC_BRANCH"
+                                                            value="{{ Auth::user()->fc_branch }}">
+                                                        <input type="hidden" name="kode_rayon" value="{{ $rayon }}">
+                                                        <button type="submit" name="load_rayon" class="btn btn-success"><i
+                                                                class="fas fa-download"></i> Load
+                                                            Data</button>
+                                                    </form><br>
                                                     @if (session()->has('session'))
                                                         <div class="alert alert-danger alert-dismissible text-center fade show"
                                                             role="alert">
@@ -40,7 +37,17 @@
                                                             role="alert">
                                                             {{ session('success') }}</div>
                                                     @endif
-                                                    @if ($is_dc)
+                                                    <div class="row">
+                                                        <div class="col-sm-12">
+                                                            <!-- text input -->
+                                                            <div class="form-group">
+                                                                <label>Kode Rayon</label>
+                                                                <input type="text" name="kode_rayon" class="form-control"
+                                                                    value="{{ $rayon }}" disabled>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {{-- @if ($is_dc)
                                                         <form action="/load-rayon" method="post">
                                                             @csrf
                                                             <div class="row">
@@ -73,7 +80,7 @@
                                                                 </div>
                                                             </div>
                                                         </form>
-                                                    @endif
+                                                    @endif --}}
                                                     <form action="/search-customer" method="post">
                                                         @csrf
                                                         <div class="row">
@@ -187,7 +194,7 @@
                                         <th>SHIP CODE</th>
                                         <th>SHIP TO</th>
                                         <th>Kota</th>
-                                        <th>Pilih</th>
+                                        <th><input type="checkbox" onchange="checkAll(this)"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -196,7 +203,7 @@
                                         @foreach ($data as $item)
                                             <tr>
                                                 <td>{{ $no }}</td>
-                                                <td>{{ $item->FC_BRANCH }}</td>
+                                                <td>{{ $item->CODE_STOF }}</td>
                                                 <td>{{ $item->FC_CUSTCODE }}</td>
                                                 <td>{{ $item->FV_CUSTNAME }}</td>
                                                 <td>{{ $item->FV_CUSTADD1 }}</td>
@@ -206,9 +213,9 @@
                                                 <form action="/checkbox-rayon" method="post">
                                                     @csrf
                                                     <td><input type="checkbox" name="FC_CUSTCODE[]"
-                                                            value="{{ $item->FC_CUSTCODE . '-' . $item->FC_SHIPCODE }}">
-                                                        <input type="hidden" name="FC_BRANCH"
-                                                            value="{{ $item->CODE_STOF }}">
+                                                            value="{{ $item->FC_CUSTCODE . '-' . $item->FC_SHIPCODE . '-' . $item->CODE_STOF }}">
+                                                        {{-- <input type="hidden" name="CODE_STOF"
+                                                            value="{{ $item->CODE_STOF }}"> --}}
                                                         <input type="hidden" name="kode_rayon"
                                                             value="{{ $rayon }}">
                                                     </td>
@@ -219,7 +226,7 @@
                                     @endif
                                 </tbody>
                             </table>
-                            <button type="submit" style="border: none"></button>
+                            <button type="submit" style="float:right" class="btn btn-primary mt-2">Submit</button>
                             </form>
                         </div>
                         <!-- /.card-body -->

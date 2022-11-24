@@ -35,6 +35,8 @@
                                             <td>
                                                 <a href="/setting-rayon/{{ $item->kode_rayon }}"
                                                     class="btn btn-primary">Setting Toko</a>
+                                                <a href="/detail-toko-rayon/{{ $item->kode_rayon }}"
+                                                    class="btn btn-success">Detail Toko</a>
                                                 <a class="btn btn-danger" data-toggle="modal"
                                                     data-target="#modal-lg{{ $item->kode_rayon }}">Hold</a>
                                                 <div class="modal fade" id="modal-lg{{ $item->kode_rayon }}">

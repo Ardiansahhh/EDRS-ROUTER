@@ -39,7 +39,7 @@
                                         <div class="form-group">
                                             <label>Kode Area</label>
                                             <input type="text" maxlength="10" name="kode_area" class="form-control"
-                                                required>
+                                                autofocus required>
                                         </div>
                                     </div>
                                 </div>
@@ -48,7 +48,7 @@
                                         <!-- select -->
                                         <div class="form-group">
                                             <label>Nama Area</label>
-                                            <input type="text" name="nama_area" class="form-control" required>
+                                            <input type="text" name="nama_area" class="form-control" autofocus required>
                                         </div>
                                     </div>
                                 </div>

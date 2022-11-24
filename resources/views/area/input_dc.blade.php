@@ -3,19 +3,19 @@
     <section class="content">
         <div class="container-fluid">
             <div class="row">
+                @if (session()->has('session'))
+                    <div class="alert alert-danger alert-dismissible text-center fade show" role="alert">
+                        {{ session('session') }}
+                    </div>
+                @endif
+                @if (session()->has('success'))
+                    <div class="alert alert-success alert-dismissible text-center fade show" role="alert">
+                        {{ session('success') }}</div>
+                @endif
             </div>
             <div class="row">
                 <div class="col-6">
                     <div class="card card-primary">
-                        @if (session()->has('session1'))
-                            <div class="alert alert-danger alert-dismissible text-center fade show" role="alert">
-                                {{ session('session1') }}
-                            </div>
-                        @endif
-                        @if (session()->has('success1'))
-                            <div class="alert alert-success alert-dismissible text-center fade show" role="alert">
-                                {{ session('success1') }}</div>
-                        @endif
                         <div class="card-header">
                             <h3 class="card-title">Input Rayon</h3>
                         </div>

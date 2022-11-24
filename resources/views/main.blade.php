@@ -125,7 +125,7 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="#" class="nav-link active">
                                 <i class="nav-icon fas fa-chart-pie"></i>
                                 <p>
@@ -138,6 +138,23 @@
                                     <a href="/routing-list" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Setting Routing</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li> --}}
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active">
+                                <i class="nav-icon fas fa-chart-pie"></i>
+                                <p>
+                                    KUBIKASI RAYON
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="/count" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Hitung Rayon</p>
                                     </a>
                                 </li>
                             </ul>
@@ -154,18 +171,18 @@
                                 <li class="nav-item">
                                     <a href="/area" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Data Area</p>
+                                        <p>Data Rayon</p>
                                     </a>
                                 </li>
                             </ul>
-                            <ul class="nav nav-treeview">
+                            {{-- <ul class="nav nav-treeview">
                                 <li class="nav-item">
                                     <a href="/rayon" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Data Rayon</p>
                                     </a>
                                 </li>
-                            </ul>
+                            </ul> --}}
                         </li>
                         <?php }
                         ?>
@@ -287,7 +304,24 @@
         <!-- /.control-sidebar -->
     </div>
     <!-- ./wrapper -->
-
+    <script type="text/javascript">
+        function checkAll(ele) {
+            var checkboxes = document.getElementsByTagName('input');
+            if (ele.checked) {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') {
+                        checkboxes[i].checked = true;
+                    }
+                }
+            } else {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') {
+                        checkboxes[i].checked = false;
+                    }
+                }
+            }
+        }
+    </script>
     <!-- jQuery -->
     <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
     <!-- Bootstrap 4 -->
@@ -327,6 +361,24 @@
     <script src="{{ asset('dist/js/pages/dashboard.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+    </script>
+    <script>
+        $(function() {
+            var pixels = 720;
+            $(window).scroll(function() {
+                if ($(window).scrollTop() > pixels) {
+                    $('.scroll').css({
+                        'position': 'fixed',
+                        'top': '40px'
+                    });
+                } else {
+                    $('.scroll').css({
+                        'position': 'static',
+                        'top': '40px'
+                    });
+                }
+            })
+        });
     </script>
     <script>
         $(function() {

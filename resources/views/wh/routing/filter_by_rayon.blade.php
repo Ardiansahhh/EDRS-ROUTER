@@ -185,30 +185,30 @@
                                                              </div>
                                                          </div>
                                                      </form>
-                                                     {{-- <form action="/filter_kode" method="post">
+                                                     <form action="/recount" method="post">
                                                          @csrf
                                                          <div class="row">
                                                              <div class="col-sm-10">
                                                                  <!-- text input -->
                                                                  <div class="form-group">
-                                                                     <label>Kode Toko</label>
+                                                                     <label>Recount Quantity</label>
                                                                      <input type="hidden" name="norouting"
                                                                          value="{{ $routing }}">
-                                                                     <input type="number" name="FC_CUSTCODE"
-                                                                         class="form-control"
-                                                                         placeholder="Masukkan Kode Toko" required>
+                                                                     <input type="number" class="form-control"
+                                                                         name="FC_CUSTCODE" readonly
+                                                                         placeholder="Recount Your Quantity Item" required>
                                                                  </div>
                                                              </div>
                                                              <div class="col-sm-2">
                                                                  <div class="form-group">
-                                                                     <label>Filter</label>
-                                                                     <button type="submit" name="filter_kode"
+                                                                     <label>Count</label>
+                                                                     <button type="submit" name="recount"
                                                                          class="btn btn-info">
-                                                                         Search</button>
+                                                                         Recount</button>
                                                                  </div>
                                                              </div>
                                                          </div>
-                                                     </form> --}}
+                                                     </form>
                                                  </div>
                                              </div>
                                              <!-- /.card -->

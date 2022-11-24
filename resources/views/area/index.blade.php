@@ -28,6 +28,7 @@
                                         @endif
                                         <th>Kode Area</th>
                                         <th>Nama Area</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -39,6 +40,8 @@
                                             @endif
                                             <td>{{ $item->kode_area }}</td>
                                             <td>{{ $item->nama_area }}</td>
+                                            <td><a href="/setting-rayon/{{ $item->kode_area }}"
+                                                    class="btn btn-primary">Setting Rayon</a></td>
                                         </tr>
                                     @endforeach
                                 </tbody>

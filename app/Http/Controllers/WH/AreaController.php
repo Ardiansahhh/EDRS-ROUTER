@@ -21,7 +21,7 @@ class AreaController extends Controller
                                                                 ELSE code_stof
                                                             END AS code_stof
                                                          FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch'
-                                                         ORDER BY code_stof");
+                                                         ORDER BY kode_area");
             return view('area/index', ['data' => $data, 'dc' => true]);
         } else {
             $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch'");
@@ -53,6 +53,8 @@ class AreaController extends Controller
         $today  = date('d-m-Y H:i:s');
         $kode   = strtoupper($request->kode_area);
         $nama   = strtoupper($request->nama_area);
+
+        // aktifkan fungsi ini jika kode area digunakan
         $data   = $this->checkCode($branch, $kode);
         if ($data) {
             return redirect('/input-area')->with('session1', 'Kode ' . $kode . ' Sudah Digunakan');
@@ -67,6 +69,22 @@ class AreaController extends Controller
             'code_stof' => $branch
         ]);
         return redirect('/input-area')->with('success1', 'Kode ' . $kode . ' Sukses Ditambahkan');
+
+        //nonaktifkan fungsi dibawah ini, jika kode area digunakan 
+        // $cek_nama = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WITH (NOLOCK) WHERE fc_branch = '$branch' AND nama_area = '$nama'");
+        // if ($cek_nama) {
+        //     return redirect('/input-area')->with('session', 'Nama Area  ' . $nama . ' Sudah Digunakan');
+        // } else {
+        //     DB::connection('CSAREPORT')->table('t_area')->insert([
+        //         'fc_branch' => $branch,
+        //         'nama_area' => $nama,
+        //         'setting'   => 'NO',
+        //         'nama'      => $user->name,
+        //         'create_at' => $today,
+        //         'code_stof' => $branch
+        //     ]);
+        //     return redirect('/input-area')->with('success', 'Nama Area ' . $nama . ' Sukses Ditambahkan');
+        // }
     }
 
     public function store_dc(Request $request)
@@ -80,6 +98,8 @@ class AreaController extends Controller
         $today  = date('d-m-Y H:i:s');
         $kode   = strtoupper($request->kode_area);
         $nama   = strtoupper($request->nama_area);
+
+        // Aktifkan baris dibawah ini, jika dc menggunakan kode area
         $data = DB::connection('CSAREPORT')->select("SELECT code_stof, kode_area FROM [CSAREPORT].[dbo].[t_area] WITH (NOLOCK) 
                                                      WHERE code_stof = '$branch' AND kode_area = '$kode'");;
         if ($data) {
@@ -96,6 +116,21 @@ class AreaController extends Controller
             ]);
             return redirect('/input-area')->with('success2', 'Kode ' . $kode . ' Sukses Ditambahkan');
         }
+
+        // $cek_nama = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WITH (NOLOCK) WHERE fc_branch = '$branch' AND nama_area = '$nama'");
+        // if ($cek_nama) {
+        //     return redirect('/input-area')->with('session', 'Nama Area  ' . $nama . ' Sudah Digunakan');
+        // } else {
+        //     DB::connection('CSAREPORT')->table('t_area')->insert([
+        //         'fc_branch' => $user->fc_branch,
+        //         'nama_area' => $nama,
+        //         'setting'   => 'NO',
+        //         'nama'      => $user->name,
+        //         'create_at' => $today,
+        //         'code_stof' => $branch
+        //     ]);
+        //     return redirect('/input-area')->with('success', 'Nama Area ' . $nama . ' Sukses Ditambahkan');
+        // }
     }
 
     public function checkCode($branch, $kode)

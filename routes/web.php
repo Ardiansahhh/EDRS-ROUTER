@@ -6,6 +6,7 @@ use App\Http\Controllers\EMPLOYEE\EmployeeController;
 use App\Http\Controllers\HO\HOController;
 use App\Http\Controllers\IT\ITController;
 use App\Http\Controllers\LOGIN\LoginController;
+use App\Http\Controllers\RAYON\CountRayonController;
 use App\Http\Controllers\VEHICLE\VehicleController;
 use App\Http\Controllers\WH\AreaController;
 use App\Http\Controllers\WH\RayonController;
@@ -53,7 +54,7 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     Route::group(['middleware' => ['CekLogin:2']], function () {
-        Route::get('/WH', [WHController::class, 'index'])->name('WH');
+        Route::get('/WH', [CountRayonController::class, 'index'])->name('WH');
 
         //Route for create routing planner
         Route::post('/create',  [WHController::class, 'store']);
@@ -109,6 +110,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/input-area', [AreaController::class, 'input'])->name('input-area');
         Route::post('/store-area', [AreaController::class, 'store']);
         Route::post('/store-area-dc', [AreaController::class, 'store_dc']);
+
+        //Route for CountRayon 
+        Route::get('/count', [CountRayonController::class, 'index']);
+        Route::get('/refresh', [CountRayonController::class, 'refresh']);
     });
 
     Route::group(['middleware' => ['CekLogin:3']], function () {

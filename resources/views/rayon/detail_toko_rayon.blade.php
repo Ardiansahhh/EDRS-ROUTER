@@ -17,18 +17,15 @@
                                                 </div>
                                                 <!-- /.card-header -->
                                                 <div class="card-body">
-                                                    @if (!$is_dc)
-                                                        <form action="/load-rayon" method="post">
-                                                            @csrf
-                                                            <input type="hidden" name="FC_BRANCH"
-                                                                value="{{ Auth::user()->fc_branch }}">
-                                                            <input type="hidden" name="kode_rayon"
-                                                                value="{{ $rayon }}">
-                                                            <button type="submit" name="load_rayon"
-                                                                class="btn btn-success"><i class="fas fa-download"></i> Load
-                                                                Data</button>
-                                                        </form><br>
-                                                    @endif
+                                                    <form action="/load-rayon" method="post">
+                                                        @csrf
+                                                        <input type="hidden" name="FC_BRANCH"
+                                                            value="{{ Auth::user()->fc_branch }}">
+                                                        <input type="hidden" name="kode_rayon" value="{{ $rayon }}">
+                                                        <button type="submit" name="load_rayon" class="btn btn-success"><i
+                                                                class="fas fa-download"></i> Load
+                                                            Data</button>
+                                                    </form><br>
                                                     @if (session()->has('session'))
                                                         <div class="alert alert-danger alert-dismissible text-center fade show"
                                                             role="alert">
@@ -40,7 +37,17 @@
                                                             role="alert">
                                                             {{ session('success') }}</div>
                                                     @endif
-                                                    @if ($is_dc)
+                                                    <div class="row">
+                                                        <div class="col-sm-12">
+                                                            <!-- text input -->
+                                                            <div class="form-group">
+                                                                <label>Kode Rayon</label>
+                                                                <input type="text" name="kode_rayon" class="form-control"
+                                                                    value="{{ $rayon }}" disabled>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {{-- @if ($is_dc)
                                                         <form action="/load-rayon" method="post">
                                                             @csrf
                                                             <div class="row">
@@ -73,7 +80,7 @@
                                                                 </div>
                                                             </div>
                                                         </form>
-                                                    @endif
+                                                    @endif --}}
                                                     <form action="/search-customer" method="post">
                                                         @csrf
                                                         <div class="row">
