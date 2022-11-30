@@ -35,23 +35,17 @@ use Illuminate\Support\Facades\DB;
                                                 <form action="/setting-dc" method="post">
                                                     @csrf
                                                     <input type="hidden" name="FC_BRANCH" value="{{ $item->FC_BRANCH }}">
-                                                    <button type="submit" class="btn btn-success">Setting</button>
+                                                    <button type="submit" class="btn btn-primary">Setting</button>
                                                 </form>
                                             </td>
                                             <?php } else { ?>
                                             <td>
-                                                <div class="btn-group" role="group" aria-label="Basic example">
-                                                    <form action="/setting-dc" method="post">
-                                                        @csrf
-                                                        <input type="hidden" name="FC_BRANCH"
-                                                            value="{{ $item->FC_BRANCH }}">
-                                                        <button type="submit" class="btn btn-warning">UNSETTING</button>
-                                                    </form>
-                                                    <a href="/input-sto/{{ $item->FC_BRANCH }}"
-                                                        class="btn btn-primary">Input STO</a>
-                                                    <a href="/satelite/{{ $item->FC_BRANCH }}"
-                                                        class="btn btn-success">SATELITE</a>
-                                                </div>
+                                                {{-- <div class="btn-group" role="group" aria-label="Basic example"> --}}
+                                                <a href="/input-sto/{{ $item->FC_BRANCH }}" class="btn btn-primary">Input
+                                                    STO</a>
+                                                <a href="/satelite/{{ $item->FC_BRANCH }}"
+                                                    class="btn btn-primary">SATELITE</a>
+                                                {{-- </div> --}}
                                             </td>
                                             <?php } ?>
                                         </tr>

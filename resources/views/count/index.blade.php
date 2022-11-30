@@ -33,6 +33,7 @@
                     <div class="card">
                         <div class="card-header">
                             <a href="/count" class="btn btn-success">Refresh</a>
+                            <a href="/routing" class="btn btn-primary">Input Routing</a>
                         </div>
                         <div class="card-body">
                             <table id="example2" class="table table-bordered table-hover">
@@ -49,8 +50,12 @@
                                             <td>{{ $item->FC_BRANCH }}</td>
                                             <td>{{ round($item->KUBIKASI, 3) }}</td>
                                             <td>
-                                                <button class="btn btn-success">Add</button>
-                                                <button class="btn btn-primary">Detail Rayon</button>
+                                                <form action="kubikasi-rayon" method="post">
+                                                    @csrf
+                                                    <input type="hidden" name="FC_BRANCH" value="{{ $FC_BRANCH }}">
+                                                    <input type="hidden" name="CODE_STOF" value="{{ $item->FC_BRANCH }}">
+                                                    <button type="submit" class="btn btn-primary">Detail Rayon</button>
+                                                </form>
                                             </td>
                                         </tr>
                                     @endforeach

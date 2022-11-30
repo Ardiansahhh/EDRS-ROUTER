@@ -46,6 +46,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/cabang', [BranchController::class, 'index']);
         Route::get('/input-sto/{FC_BRANCH}', [BranchController::class, 'input_sto']);
         Route::get('/satelite/{FC_BRANCH}', [BranchController::class, 'satelite']);
+        Route::get('/setup-gt/{CODE_STOF}/{FC_BRANCH}', [BranchController::class, 'setup_gt']);
+        Route::get('/setup-mt/{CODE_STOF}/{FC_BRANCH}', [BranchController::class, 'setup_mt']);
+        Route::post('/set-all', [BranchController::class, 'set_all']);
+        Route::post('/set-gt', [BranchController::class, 'set_gt']);
+        Route::post('/set-mt', [BranchController::class, 'set_mt']);
         Route::post('/setting-dc', [BranchController::class, 'setting_dc']);
         Route::post('/store', [BranchController::class, 'store']);
 
@@ -54,8 +59,8 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     Route::group(['middleware' => ['CekLogin:2']], function () {
-        Route::get('/WH', [CountRayonController::class, 'index'])->name('WH');
-
+        // Route::get('/WH', [CountRayonController::class, 'index'])->name('WH');
+        Route::get('/WH', [WHController::class, 'index'])->name('WH');
         //Route for create routing planner
         Route::post('/create',  [WHController::class, 'store']);
         Route::get('/routing-list',  [WHController::class, 'list']);
@@ -114,6 +119,7 @@ Route::group(['middleware' => ['auth']], function () {
         //Route for CountRayon 
         Route::get('/count', [CountRayonController::class, 'index']);
         Route::get('/refresh', [CountRayonController::class, 'refresh']);
+        Route::post('/kubikasi-rayon', [CountRayonController::class, 'kubikasi_rayon']);
     });
 
     Route::group(['middleware' => ['CekLogin:3']], function () {

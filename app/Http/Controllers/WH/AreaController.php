@@ -24,7 +24,13 @@ class AreaController extends Controller
                                                          ORDER BY kode_area");
             return view('area/index', ['data' => $data, 'dc' => true]);
         } else {
-            $data = DB::connection('CSAREPORT')->select("SELECT * FROM [CSAREPORT].[dbo].[t_area] WHERE fc_branch = '$user->fc_branch'");
+            $data = DB::connection('CSAREPORT')->select("SELECT a.fc_branch, a.kode_area, a.nama_area, a.code_stof, count(b.kode_rayon) AS jumlah_toko
+                                                         FROM [CSAREPORT].[dbo].[t_area] a WITH (NOLOCK) 
+                                                         LEFT JOIN [CSAREPORT].[dbo].[t_rayon_detail] b WITH (NOLOCK) 
+                                                         on a.fc_branch = b.fc_branch AND a.kode_area = b.kode_rayon
+                                                         WHERE a.fc_branch = '$user->fc_branch'
+                                                         GROUP BY a.fc_branch, a.kode_area, a.nama_area, a.code_stof
+                                                         ");
             return view('area/index', ['data' => $data, 'dc' => false]);
         }
     }

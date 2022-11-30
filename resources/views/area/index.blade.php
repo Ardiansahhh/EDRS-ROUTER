@@ -40,8 +40,12 @@
                                             @endif
                                             <td>{{ $item->kode_area }}</td>
                                             <td>{{ $item->nama_area }}</td>
-                                            <td><a href="/setting-rayon/{{ $item->kode_area }}"
-                                                    class="btn btn-primary">Setting Rayon</a></td>
+                                            <td>
+                                                {{-- <a href="/detail-toko-rayon/{{ $item->kode_area }}"
+                                                    class="btn btn-primary">Detail Toko ( {{ $item->jumlah_toko }} )</a> --}}
+                                                <a href="/setting-rayon/{{ $item->kode_area }}"
+                                                    class="btn btn-primary">Setting Rayon</a>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -125,7 +125,7 @@
                                 </li>
                             </ul>
                         </li>
-                        {{-- <li class="nav-item">
+                        <li class="nav-item">
                             <a href="#" class="nav-link active">
                                 <i class="nav-icon fas fa-chart-pie"></i>
                                 <p>
@@ -141,7 +141,7 @@
                                     </a>
                                 </li>
                             </ul>
-                        </li> --}}
+                        </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link active">
                                 <i class="nav-icon fas fa-chart-pie"></i>
@@ -321,9 +321,44 @@
                 }
             }
         }
+
+        function checkAllGT(ele) {
+            var checkboxes = document.getElementsByClassName('GT');
+            if (ele.checked) {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') {
+                        checkboxes[i].checked = true;
+                    }
+                }
+            } else {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') {
+                        checkboxes[i].checked = false;
+                    }
+                }
+            }
+        }
+
+        function checkAllMT(ele) {
+            var checkboxes = document.getElementsByClassName('MT');
+            if (ele.checked) {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') {
+                        checkboxes[i].checked = true;
+                    }
+                }
+            } else {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') {
+                        checkboxes[i].checked = false;
+                    }
+                }
+            }
+        }
     </script>
     <!-- jQuery -->
     <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
+    {{-- <script src="{{ asset('dist/js/jquery-3.6.1.min.js') }}"></script> --}}
     <!-- Bootstrap 4 -->
     <script src="{{ asset('plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
@@ -362,6 +397,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     <script>
         $(function() {
             var pixels = 720;

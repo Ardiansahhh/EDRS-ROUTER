@@ -46,6 +46,7 @@
                                         <th>SALES ORDER</th>
                                         <th>CODE CUST</th>
                                         <th>NAMA</th>
+                                        <th>ALAMAT</th>
                                         <th>RAYON</th>
                                         <th>KUBIKASI</th>
                                     </tr>
@@ -59,6 +60,7 @@
                                             <td>{{ $item->FC_SONO }}</td>
                                             <td>{{ $item->FC_CUSTCODE }}</td>
                                             <td>{{ $item->FV_CUSTNAME }}</td>
+                                            <td>{{ $item->ALAMAT }}</td>
                                             <td>{{ $item->KODE_RAYON }}</td>
                                             <td>{{ round($item->KUBIKASI, 3) }}</td>
                                         </tr>
